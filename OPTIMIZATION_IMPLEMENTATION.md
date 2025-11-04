@@ -102,15 +102,20 @@ V_T = cp.where(
 
 ---
 
-## 📊 예상 성능
+## 📊 예상 성능 (⚠️ 이론적 예측)
+
+**주의:** 아래 수치는 **알고리즘 분석 기반 이론적 예측**입니다!
+실제 GPU 환경에서 측정 필요!
 
 ### 전체 성능 향상 (100×100 그리드 기준)
 
-| 구현 | 시간 | CPU 대비 | 이전 대비 |
+| 구현 | 시간 (예측) | CPU 대비 | 이전 대비 |
 |------|------|----------|-----------|
-| **CPU (Baseline)** | 20초 | 1배 | - |
-| **GPU (Original)** | 0.5초 | 40배 | - |
-| **GPU (Optimized)** | 0.03-0.05초 | 400-600배 | **10-15배** |
+| **CPU (Baseline)** | ~20초 | 1배 | - |
+| **GPU (Original)** | ~0.5초 | ~40배 | - |
+| **GPU (Optimized)** | ~0.03-0.05초 | ~400-600배 | **~10-15배** |
+
+**예측 근거:** ADI solve(88% 비중)를 20배 개선 시 전체 약 15배 향상
 
 ### 구성요소별 기여도
 
@@ -136,30 +141,56 @@ V_T = cp.where(
 
 ## 🧪 테스트 결과
 
-### 정확성 검증
+### ⚠️ 중요: 현재 테스트 상태
+
+**검증 완료:**
+- ✅ 알고리즘 정확성 (CPU fallback 모드)
+- ✅ 코드 버그 없음
+- ✅ 가격 계산 일치
+
+**미검증:**
+- ❌ 실제 GPU 성능 (GPU 없음)
+- ❌ 성능 향상 배수 (예측일 뿐)
+
+### 정확성 검증 (CPU fallback 모드)
 
 ```bash
 $ python3 test_optimized.py
 
+⚠️  CuPy가 설치되지 않았습니다. CPU 모드로 실행합니다.
+
 CPU Price:          106.655756
-Optimized GPU Price: 106.655756
+Optimized GPU Price: 106.655756  ← 실제로는 CPU로 실행됨
 Difference:          0.000000 (0.0000%)
 
 ✅ Test PASSED: Prices match within 1%
 ```
 
-### 성능 벤치마크 실행 방법
+**의미:**
+- 알고리즘 로직은 정확함
+- GPU 없어도 CPU fallback으로 작동
+- **성능 향상은 이론적 예측일 뿐**
 
+### 성능 벤치마크 (GPU 환경 필요!)
+
+**실행 방법:**
 ```bash
-# CuPy가 설치되어 있는 경우
+# 1. CuPy 설치
+pip install cupy-cuda11x  # 또는 cupy-cuda12x
+
+# 2. 벤치마크 실행
 python3 benchmark_optimized.py
 ```
+
+**⚠️ 현재 환경에서는 GPU가 없어서 실행 불가!**
 
 **벤치마크 내용:**
 - CPU baseline
 - Original GPU (순차 for loop)
 - Optimized GPU (batched + vectorized)
 - 3가지 그리드 크기 테스트: Small (60×60), Medium (80×80), Large (100×100)
+
+**자세한 테스트 가이드:** `GPU_TEST_GUIDE.md` 참조
 
 ---
 
@@ -241,9 +272,16 @@ print(f"GPU (Opt): {opt_time:.4f}s ({cpu_time/opt_time:.1f}x faster, {gpu_time/o
 - [x] Vectorized 조기상환 체크 구현
 - [x] Vectorized 만기 페이오프 구현
 - [x] CPU fallback 모드 구현
-- [x] 정확성 테스트 통과
+- [x] 정확성 테스트 통과 (CPU 모드)
 - [x] 벤치마크 스크립트 작성
 - [x] 문서화
+
+## ⏳ 미완료 항목 (GPU 환경 필요)
+
+- [ ] 실제 GPU 환경에서 성능 측정
+- [ ] 예측 vs 실제 성능 비교
+- [ ] GPU 메모리 사용량 측정
+- [ ] 다양한 GPU에서 테스트
 
 ---
 
@@ -319,5 +357,7 @@ print(f"GPU (Opt): {opt_time:.4f}s ({cpu_time/opt_time:.1f}x faster, {gpu_time/o
 ---
 
 **구현 완료일**: 2025-11-04
-**테스트 상태**: ✅ PASSED
-**프로덕션 준비**: ✅ READY
+**테스트 상태**: ⚠️ 정확성만 검증 (GPU 성능 미측정)
+**프로덕션 준비**: ⚠️ GPU 환경에서 검증 필요
+
+**다음 단계:** `GPU_TEST_GUIDE.md` 참조하여 실제 GPU에서 테스트
