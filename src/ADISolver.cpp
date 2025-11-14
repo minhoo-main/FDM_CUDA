@@ -289,8 +289,7 @@ PricingResult priceELS(
     const auto& S2 = grid->getS2();
 
     // TODO: Track KI properly (for now assume no KI)
-    // TEMP FIX: Assume KI occurred for all paths to test early redemption fix
-    bool kiOccurred = true;
+    bool kiOccurred = false;
 
     for (int i = 0; i < N1; ++i) {
         for (int j = 0; j < N2; ++j) {
