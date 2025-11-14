@@ -205,7 +205,7 @@ void applyBoundaryConditions(double* d_V, int N1, int N2) {
  * Early Redemption GPU Kernel
  *
  * Applies early redemption condition for Step-Down ELS
- * If min(S1/S1_0, S2/S2_0) >= barrier, V = max(V, principal + coupon)
+ * If min(S1/S1_0, S2/S2_0) >= barrier, V = principal + coupon (forced redemption)
  */
 __global__ void applyEarlyRedemptionKernel(
     double* __restrict__ V,
@@ -228,9 +228,10 @@ __global__ void applyEarlyRedemptionKernel(
         double worst = (s1_pct < s2_pct) ? s1_pct : s2_pct;
 
         if (worst >= barrier) {
+            // Early redemption is mandatory, not optional
             double redemption_value = principal + coupon;
             int idx = i * N2 + j;
-            V[idx] = (V[idx] > redemption_value) ? V[idx] : redemption_value;
+            V[idx] = redemption_value;
         }
     }
 }

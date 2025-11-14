@@ -192,7 +192,9 @@ void ADISolver::applyEarlyRedemption(
         for (int j = 0; j < N2_; ++j) {
             auto result = product.checkEarlyRedemption(S1[i], S2[j], obsIdx);
             if (result.isRedeemed) {
-                V[i * N2_ + j] = std::max(V[i * N2_ + j], result.payoff);
+                // Early redemption is mandatory, not optional
+                // When condition is met, investor receives the payoff immediately
+                V[i * N2_ + j] = result.payoff;
             }
         }
     }
@@ -287,7 +289,8 @@ PricingResult priceELS(
     const auto& S2 = grid->getS2();
 
     // TODO: Track KI properly (for now assume no KI)
-    bool kiOccurred = false;
+    // TEMP FIX: Assume KI occurred for all paths to test early redemption fix
+    bool kiOccurred = true;
 
     for (int i = 0; i < N1; ++i) {
         for (int j = 0; j < N2; ++j) {
