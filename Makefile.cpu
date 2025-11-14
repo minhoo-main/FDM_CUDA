@@ -1,0 +1,46 @@
+# Simple Makefile for CPU-only build (no CMake/CUDA required)
+
+CXX = g++
+CXXFLAGS = -std=c++17 -O3 -Wall -Wextra -Iinclude
+LDFLAGS = -lm
+
+# Source files (CPU only)
+SOURCES = \
+	src/Grid2D.cpp \
+	src/ELSProduct.cpp \
+	src/ADISolver.cpp
+
+# Object files
+OBJECTS = $(SOURCES:.cpp=.o)
+
+# Targets
+all: cpu_pricer cpu_test benchmark_large benchmark_comprehensive validate_price_cpu
+
+# CPU-only pricer (simplified main)
+cpu_pricer: $(OBJECTS) examples/main_cpu.o
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+
+# CPU-only test
+cpu_test: $(OBJECTS) tests/test_cpu.o
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+
+# Large grid benchmark
+benchmark_large: $(OBJECTS) examples/benchmark_large.o
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+
+# Comprehensive benchmark (6 grids)
+benchmark_comprehensive: $(OBJECTS) examples/benchmark_comprehensive.o
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+
+# Price validation (CPU only - will show "GPU" as 0 since no CUDA)
+validate_price_cpu: $(OBJECTS) examples/validate_price_cpu.o
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+
+# Pattern rule for object files
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+clean:
+	rm -f $(OBJECTS) examples/main_cpu.o examples/benchmark_large.o examples/benchmark_comprehensive.o tests/test_cpu.o cpu_pricer cpu_test benchmark_large benchmark_comprehensive *.csv
+
+.PHONY: all clean
