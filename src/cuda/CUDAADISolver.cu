@@ -250,13 +250,12 @@ std::vector<double> CUDAADISolver::solveWithEarlyRedemption(
 
     int obsIdx = static_cast<int>(obsDates.size()) - 1;
 
-    // Time stepping
-    for (int n = Nt_ - 1; n >= 0; --n) {
-        solveS1DirectionGPU();
-        solveS2DirectionGPU();
-        applyBoundaryConditionsGPU();
-
-        // Early redemption on GPU (no CPU copy needed!)
+    // Time stepping (backward from Nt_ to 1)
+    // Note: We go from Nt_ to 1 (not 0) because:
+    // - At n=Nt_ we only check early redemption (no PDE step)
+    // - PDE steps go from n=Nt_-1 down to n=1
+    for (int n = Nt_; n >= 1; --n) {
+        // Check early redemption BEFORE PDE step
         if (obsIdx >= 0 && n == obsIndices[obsIdx]) {
             const auto& barriers = product.getRedemptionBarriers();
             const auto& coupons = product.getCoupons();
@@ -275,6 +274,13 @@ std::vector<double> CUDAADISolver::solveWithEarlyRedemption(
             );
 
             --obsIdx;
+        }
+
+        // ADI steps (except at n=Nt_ which is terminal condition)
+        if (n < Nt_) {
+            solveS1DirectionGPU();
+            solveS2DirectionGPU();
+            applyBoundaryConditionsGPU();
         }
     }
 

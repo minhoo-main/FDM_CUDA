@@ -2,6 +2,7 @@
 #include <cmath>
 #include <algorithm>
 #include <iostream>
+#include <iomanip>
 #include <chrono>
 
 namespace ELSPricer {
@@ -188,6 +189,7 @@ void ADISolver::applyEarlyRedemption(
     const auto& S1 = grid_.getS1();
     const auto& S2 = grid_.getS2();
 
+    int redeemed_count = 0;
     for (int i = 0; i < N1_; ++i) {
         for (int j = 0; j < N2_; ++j) {
             auto result = product.checkEarlyRedemption(S1[i], S2[j], obsIdx);
@@ -195,9 +197,18 @@ void ADISolver::applyEarlyRedemption(
                 // Early redemption is mandatory, not optional
                 // When condition is met, investor receives the payoff immediately
                 V[i * N2_ + j] = result.payoff;
+                redeemed_count++;
             }
         }
     }
+
+    // Debug output
+    double percentage = 100.0 * redeemed_count / (N1_ * N2_);
+    std::cout << "  [DEBUG] Observation " << obsIdx
+              << " (t=" << product.getObservationDates()[obsIdx] << "): "
+              << redeemed_count << " / " << (N1_ * N2_)
+              << " points redeemed (" << std::fixed << std::setprecision(1)
+              << percentage << "%)" << std::endl;  // Force flush
 }
 
 std::vector<double> ADISolver::solve(const std::vector<double>& V_T) {
@@ -231,6 +242,7 @@ std::vector<double> ADISolver::solveWithEarlyRedemption(
 
     // Convert observation dates to time indices
     std::vector<int> obsIndices;
+    std::cout << "[DEBUG] Matching observation dates to timesteps:\n";
     for (double obsDate : obsDates) {
         int idx = 0;
         double minDiff = std::abs(timeGrid[0] - obsDate);
@@ -242,21 +254,29 @@ std::vector<double> ADISolver::solveWithEarlyRedemption(
             }
         }
         obsIndices.push_back(idx);
+        std::cout << "  t=" << obsDate << " -> timestep " << idx
+                  << " (actual t=" << timeGrid[idx] << ")" << std::endl;
     }
 
     int obsIdx = static_cast<int>(obsDates.size()) - 1;
 
-    // Time stepping
-    for (int n = Nt_ - 1; n >= 0; --n) {
-        // ADI steps
-        solveS1Direction(V, V_half);
-        solveS2Direction(V_half, V);
-        applyBoundaryConditions(V);
-
-        // Check early redemption
+    // Time stepping (backward from Nt_ to 1)
+    // Note: We go from Nt_ to 1 (not 0) because:
+    // - At n=Nt_ we only check early redemption (no PDE step)
+    // - PDE steps go from n=Nt_-1 down to n=1
+    for (int n = Nt_; n >= 1; --n) {
+        // Check early redemption BEFORE PDE step
         if (obsIdx >= 0 && n == obsIndices[obsIdx]) {
+            std::cout << "[DEBUG] Applying early redemption at timestep " << n << std::endl;
             applyEarlyRedemption(V, obsIdx, product);
             --obsIdx;
+        }
+
+        // ADI steps (except at n=Nt_ which is terminal condition)
+        if (n < Nt_) {
+            solveS1Direction(V, V_half);
+            solveS2Direction(V_half, V);
+            applyBoundaryConditions(V);
         }
     }
 
