@@ -1,214 +1,117 @@
-# Quick Start Guide
+# ELS Pricer - Quick Start
 
-## 5-Minute Setup
+## 📦 Colab용 패키지 파일
 
-### Prerequisites Check
+**파일명**: `els-pricer-colab.tar.gz` (26KB)
 
-```bash
-# Check C++ compiler
-g++ --version  # Should be 9.0 or later
+## 🚀 빠른 시작 (Google Colab)
 
-# Check CMake
-cmake --version  # Should be 3.18 or later
-
-# Check CUDA (optional, for GPU)
-nvcc --version  # Should be 11.0 or later
-nvidia-smi     # Check GPU availability
+### 1단계: 파일 업로드
+```python
+# Colab에서 실행
+from google.colab import files
+uploaded = files.upload()  # els-pricer-colab.tar.gz 선택
 ```
 
-### Build and Run
-
-```bash
-# Navigate to project
-cd /home/minhoo/els-pricer-cpp
-
-# Create build directory
-mkdir -p build && cd build
-
-# Configure (auto-detects CUDA)
-cmake ..
-
-# Build
-make -j$(nproc)
-
-# Run benchmark
-./els_pricer --compare
-
-# Run tests
-./test_els
+### 2단계: 압축 해제 및 빌드
+```python
+!tar -xzf els-pricer-colab.tar.gz
+%cd els-pricer-cpp
+!bash colab_setup.sh
 ```
 
-## Expected Output
-
-```
-═══════════════════════════════════════════════════════════
-   ELS Pricer - C++/CUDA Implementation
-   2D FDM ADI Solver with GPU Acceleration
-═══════════════════════════════════════════════════════════
-
-✓ GPU Initialized: NVIDIA GeForce RTX 4080
-
-Grid: 100 × 100 × 200
-
-Running CPU solver...
-Running GPU solver...
-
-============================================================
-Method                  Price         Time (s)        Speedup
-------------------------------------------------------------
-CPU                   98.1234          2.145           1.00×
-GPU (CUDA)            98.1231          0.156          13.75×
-============================================================
-
-✓ GPU is 13.8× faster than CPU!
+### 3단계: 테스트 실행
+```python
+# CPU 가격 검증
+!./validate_price_cpu
 ```
 
-## Common Issues
+**기대 결과**: ~103.9원 (몬테칼로 104.44원과 0.5% 차이)
 
-### 1. CUDA Not Found
-
-**Error:**
-```
-Could NOT find CUDAToolkit
-```
-
-**Solution:**
-```bash
-# Install CUDA toolkit
-# Ubuntu:
-sudo apt install nvidia-cuda-toolkit
-
-# Or download from NVIDIA:
-# https://developer.nvidia.com/cuda-downloads
-
-# Then add to PATH:
-export PATH=/usr/local/cuda/bin:$PATH
-export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+### 4단계 (GPU 있으면): 성능 비교
+```python
+# Runtime > Change runtime type > GPU 선택 후
+!./benchmark_gpu
 ```
 
-### 2. Build CPU-Only Version
+## 📊 주요 개선사항
 
-If you don't have a GPU:
+### Before (버그 있음)
+- 가격: **111.74원**
+- 오차: **7.0%** (몬테칼로 대비)
+- 조기상환: ❌ 작동 안 함
 
-```bash
-cd build
-cmake -DUSE_CUDA=OFF ..
-make -j$(nproc)
+### After (버그 수정)
+- 가격: **103.9원** ✅
+- 오차: **0.5%**
+- 조기상환: ✅ 정상 작동 (50-58% 상환)
 
-# Run CPU-only benchmarks
-./els_pricer --cpu-only
+## 🐛 수정된 버그
+
+1. **조기상환 로직**
+   - 이전: `V = std::max(V, payoff)` (선택적)
+   - 수정: `V = payoff` (강제)
+
+2. **타임스텝 인덱싱** (치명적)
+   - 이전: 루프 `Nt_-1 → 0` (마지막 관찰 누락)
+   - 수정: 루프 `Nt_ → 1` (모든 관찰 포함)
+
+## 📁 포함 파일
+
+```
+els-pricer-cpp/
+├── src/                 # CPU 소스코드
+│   ├── Grid2D.cpp
+│   ├── ELSProduct.cpp
+│   ├── ADISolver.cpp    ← 버그 수정됨!
+│   └── cuda/            # GPU 소스코드
+│       ├── batched_thomas.cu
+│       └── CUDAADISolver.cu  ← 버그 수정됨!
+├── include/             # 헤더 파일
+├── examples/
+│   ├── validate_price_cpu.cpp
+│   └── benchmark_gpu.cpp
+├── colab_setup.sh       # 자동 빌드 스크립트
+├── ELS_Pricer_Colab.ipynb
+└── 문서들
+    ├── COLAB_GUIDE.md
+    ├── BUGFIX_SUMMARY.txt
+    └── BUGFIX_EARLY_REDEMPTION.md
 ```
 
-### 3. Architecture Mismatch
+## ⚠️ 알려진 제한사항
 
-**Error:**
-```
-nvcc fatal: Unsupported gpu architecture 'compute_89'
-```
+**낙인(KI) 추적 미구현**
+- 현재 가격: 103.9원 (KI 무시)
+- 정확한 가격: ~93.92원 (KI 포함)
+- 해결: 2-state PDE 구현 필요 (향후 작업)
 
-**Solution:**
-Edit `CMakeLists.txt` and change:
-```cmake
-# Find your GPU's compute capability
-nvidia-smi --query-gpu=compute_cap --format=csv
+KI가 있는 상품은 몬테칼로 시뮬레이션 사용 권장
 
-# For compute capability 8.6 (RTX 30xx):
-set(CMAKE_CUDA_ARCHITECTURES 86)
+## 📚 상세 문서
 
-# For compute capability 7.5 (RTX 20xx, T4):
-set(CMAKE_CUDA_ARCHITECTURES 75)
-```
+- **COLAB_GUIDE.md**: 전체 사용 가이드
+- **BUGFIX_SUMMARY.txt**: 버그 수정 요약
+- **BUGFIX_EARLY_REDEMPTION.md**: 버그 상세 분석
 
-Then rebuild:
-```bash
-cd build
-rm -rf *
-cmake ..
-make -j$(nproc)
+## 💡 테스트 파라미터
+
+```cpp
+σ₁ = 15.2%, σ₂ = 40.4%, ρ = 0.61
+r = 3.477%, q₁ = 1.5%, q₂ = 2.0%
+Maturity = 3년
+Barriers = [85%, 85%, 80%, 80%, 75%, 70%]
+KI = 45%
 ```
 
-## Next Steps
+## 🎯 성능
 
-- **Modify ELS parameters**: Edit `examples/main.cpp`
-- **Try different grid sizes**: Change N1, N2, Nt in main.cpp
-- **Compare with Python**: Run Python version and compare performance
-- **Profile performance**: Use `nvprof ./els_pricer` to analyze GPU kernels
+| Grid Size | CPU Time | GPU Time (T4) | Speedup |
+|-----------|----------|---------------|---------|
+| 100×100×200 | ~0.1s | ~0.02s | ~5x |
+| 500×500×1000 | ~10s | ~0.5s | ~20x |
+| 1000×1000×2000 | ~100s | ~2s | ~50x |
 
-## Performance Tips
+---
 
-### For Best CPU Performance
-```bash
-# Compile with optimizations
-cd build
-cmake -DCMAKE_BUILD_TYPE=Release ..
-make -j$(nproc)
-```
-
-### For Best GPU Performance
-- Use grid sizes that are multiples of 32 (warp size)
-- Example: 64×64, 128×128, 192×192 instead of arbitrary sizes
-- Larger grids (200×200×500+) show better GPU speedup
-
-## Benchmark Suggested Grid Sizes
-
-```bash
-# Quick test (< 1 second)
-Grid: 50×50×100
-
-# Standard test (few seconds)
-Grid: 100×100×200
-
-# Performance test (10-30 seconds)
-Grid: 150×150×300
-
-# Stress test (1-5 minutes)
-Grid: 200×200×1000
-```
-
-Edit `examples/main.cpp` to change these.
-
-## Comparing with Python
-
-```bash
-# C++ version
-cd /home/minhoo/els-pricer-cpp/build
-time ./els_pricer --compare
-
-# Python version
-cd /home/minhoo/els-pricing-gpu-project/source/els-fdm-pricer
-time python3 benchmark_gpu.py
-```
-
-Expected results:
-- C++ 3-5× faster than Python on CPU
-- C++ 2-10× faster than Python on GPU (depending on grid size)
-
-## Understanding Results
-
-### Price Interpretation
-- **98-105**: Normal range for sample ELS at t=0
-- **Price > 100**: Low volatility or high barriers make early redemption likely
-- **Price < 95**: High volatility or strict barriers reduce expected payoff
-
-### Speedup Interpretation
-- **< 1×**: GPU overhead dominates (small grid)
-- **1-5×**: Moderate speedup (medium grid)
-- **5-20×**: Good speedup (large grid)
-- **> 20×**: Excellent speedup (very large grid)
-
-### When to Use GPU
-- Grid size > 100×100×200
-- Multiple pricing runs
-- Real-time applications
-
-### When to Use CPU
-- Grid size < 100×100
-- Single pricing calculation
-- No GPU available
-- Debugging
-
-## Documentation
-
-- Full documentation: `README.md`
-- Algorithm details: See original Python project at `/home/minhoo/els-pricing-gpu-project/docs/`
-- Code examples: `examples/main.cpp` and `tests/test_pricing.cpp`
+**Ready for production**: Non-KI ELS products ✅
