@@ -40,7 +40,7 @@ void runBenchmark(const ELSProduct& product) {
         auto result = priceELS(product, size.N1, size.N2, size.Nt, false);
 
         long long totalPoints = (long long)size.N1 * size.N2 * size.Nt;
-        double pointsPerSec = totalPoints / result.computeTime;
+        Real pointsPerSec = totalPoints / result.computeTime;
 
         std::cout << std::setw(10) << size.name
                   << std::setw(5) << size.N1 << "×" << std::setw(3) << size.N2 << "×" << std::setw(4) << size.Nt

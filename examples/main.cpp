@@ -41,7 +41,7 @@ void runCPUBenchmark(const ELSProduct& product) {
         auto result = priceELS(product, size.N1, size.N2, size.Nt, false);
 
         int totalPoints = size.N1 * size.N2 * size.Nt;
-        double pointsPerSec = totalPoints / result.computeTime;
+        Real pointsPerSec = totalPoints / result.computeTime;
 
         std::cout << std::setw(10) << size.name
                   << std::setw(8) << size.N1 << "×" << size.N2 << "×" << size.Nt
@@ -79,7 +79,7 @@ void runGPUBenchmark(const ELSProduct& product) {
         auto result = CUDA::priceELSGPU(product, size.N1, size.N2, size.Nt, false);
 
         int totalPoints = size.N1 * size.N2 * size.Nt;
-        double pointsPerSec = totalPoints / result.computeTime;
+        Real pointsPerSec = totalPoints / result.computeTime;
 
         std::cout << std::setw(10) << size.name
                   << std::setw(8) << size.N1 << "×" << size.N2 << "×" << size.Nt
@@ -120,7 +120,7 @@ void runComparison(const ELSProduct& product) {
               << std::setw(15) << std::setprecision(3) << cpuResult.computeTime
               << std::setw(15) << "1.00×\n";
 
-    double speedup = cpuResult.computeTime / gpuResult.computeTime;
+    Real speedup = cpuResult.computeTime / gpuResult.computeTime;
     std::cout << std::setw(20) << "GPU (CUDA)"
               << std::setw(15) << std::setprecision(4) << gpuResult.price
               << std::setw(15) << std::setprecision(3) << gpuResult.computeTime
@@ -129,8 +129,8 @@ void runComparison(const ELSProduct& product) {
     std::cout << std::string(60, '=') << "\n";
 
     // Price difference
-    double priceDiff = std::abs(cpuResult.price - gpuResult.price);
-    double relDiff = priceDiff / cpuResult.price * 100.0;
+    Real priceDiff = std::abs(cpuResult.price - gpuResult.price);
+    Real relDiff = priceDiff / cpuResult.price * 100.0;
     std::cout << "\nPrice difference: " << priceDiff
               << " (" << relDiff << "%)\n";
 

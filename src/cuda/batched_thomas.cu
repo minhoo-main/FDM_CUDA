@@ -1,3 +1,4 @@
+#include "precision.h"
 #include <cuda_runtime.h>
 #include <stdio.h>
 
@@ -32,7 +33,7 @@ __global__ void batchedThomasKernel(
     if (bid >= batch_size) return;
 
     // Each block processes one tridiagonal system
-    extern __shared__ double shared_mem[];
+    extern __shared__ ELSPricer::Real shared_mem[];
 
     double* c_prime = shared_mem;           // [N-1]
     double* d_prime = &shared_mem[N - 1];   // [N]
@@ -49,14 +50,14 @@ __global__ void batchedThomasKernel(
 
         // Middle rows
         for (int i = 1; i < N - 1; ++i) {
-            double denom = diag[i] - lower[i - 1] * c_prime[i - 1];
+            ELSPricer::Real denom = diag[i] - lower[i - 1] * c_prime[i - 1];
             c_prime[i] = upper[i] / denom;
             d_prime[i] = (rhs_b[i] - lower[i - 1] * d_prime[i - 1]) / denom;
         }
 
         // Last row
         int i = N - 1;
-        double denom = diag[i] - lower[i - 1] * c_prime[i - 1];
+        ELSPricer::Real denom = diag[i] - lower[i - 1] * c_prime[i - 1];
         d_prime[i] = (rhs_b[i] - lower[i - 1] * d_prime[i - 1]) / denom;
 
         // Backward substitution
@@ -83,7 +84,7 @@ __global__ void batchedThomasKernelOptimized(
     int bid = blockIdx.x * blockDim.y + threadIdx.y;
     if (bid >= batch_size) return;
 
-    extern __shared__ double shared_mem[];
+    extern __shared__ ELSPricer::Real shared_mem[];
     int tid = threadIdx.x;
     int stride = blockDim.x;
 
@@ -107,14 +108,14 @@ __global__ void batchedThomasKernelOptimized(
             // Spin wait (not ideal but simple)
         }
 
-        double denom = diag[i] - lower[i - 1] * c_prime[i - 1];
+        ELSPricer::Real denom = diag[i] - lower[i - 1] * c_prime[i - 1];
         c_prime[i] = upper[i] / denom;
         d_prime[i] = (rhs_b[i] - lower[i - 1] * d_prime[i - 1]) / denom;
     }
 
     if (tid == 0) {
         int i = N - 1;
-        double denom = diag[i] - lower[i - 1] * c_prime[i - 1];
+        ELSPricer::Real denom = diag[i] - lower[i - 1] * c_prime[i - 1];
         d_prime[i] = (rhs_b[i] - lower[i - 1] * d_prime[i - 1]) / denom;
     }
     __syncthreads();
@@ -211,11 +212,11 @@ __global__ void applyEarlyRedemptionKernel(
     double* __restrict__ V,
     const double* __restrict__ S1,
     const double* __restrict__ S2,
-    double S1_0,
-    double S2_0,
-    double barrier,
-    double principal,
-    double coupon,
+    ELSPricer::Real S1_0,
+    ELSPricer::Real S2_0,
+    ELSPricer::Real barrier,
+    ELSPricer::Real principal,
+    ELSPricer::Real coupon,
     int N1,
     int N2)
 {
@@ -223,13 +224,13 @@ __global__ void applyEarlyRedemptionKernel(
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < N1 && j < N2) {
-        double s1_pct = S1[i] / S1_0;
-        double s2_pct = S2[j] / S2_0;
-        double worst = (s1_pct < s2_pct) ? s1_pct : s2_pct;
+        ELSPricer::Real s1_pct = S1[i] / S1_0;
+        ELSPricer::Real s2_pct = S2[j] / S2_0;
+        ELSPricer::Real worst = (s1_pct < s2_pct) ? s1_pct : s2_pct;
 
         if (worst >= barrier) {
             // Early redemption is mandatory, not optional
-            double redemption_value = principal + coupon;
+            ELSPricer::Real redemption_value = principal + coupon;
             int idx = i * N2 + j;
             V[idx] = redemption_value;
         }
@@ -272,11 +273,11 @@ void applyEarlyRedemption(
     double* d_V,
     const double* d_S1,
     const double* d_S2,
-    double S1_0,
-    double S2_0,
-    double barrier,
-    double principal,
-    double coupon,
+    ELSPricer::Real S1_0,
+    ELSPricer::Real S2_0,
+    ELSPricer::Real barrier,
+    ELSPricer::Real principal,
+    ELSPricer::Real coupon,
     int N1,
     int N2)
 {

@@ -16,7 +16,7 @@ void runBenchmark(const ELSProduct& product, int N1, int N2, int Nt, const std::
     auto cpu_start = std::chrono::high_resolution_clock::now();
     auto cpu_result = priceELS(product, N1, N2, Nt, false);
     auto cpu_end = std::chrono::high_resolution_clock::now();
-    double cpu_time = std::chrono::duration<double>(cpu_end - cpu_start).count();
+    Real cpu_time = std::chrono::duration<Real>(cpu_end - cpu_start).count();
 
     // GPU timing (with warmup)
     auto gpu_result = priceELSGPU(product, N1, N2, Nt, false);  // Warmup
@@ -24,9 +24,9 @@ void runBenchmark(const ELSProduct& product, int N1, int N2, int Nt, const std::
     auto gpu_start = std::chrono::high_resolution_clock::now();
     gpu_result = priceELSGPU(product, N1, N2, Nt, false);
     auto gpu_end = std::chrono::high_resolution_clock::now();
-    double gpu_time = std::chrono::duration<double>(gpu_end - gpu_start).count();
+    Real gpu_time = std::chrono::duration<Real>(gpu_end - gpu_start).count();
 
-    double speedup = cpu_time / gpu_time;
+    Real speedup = cpu_time / gpu_time;
 
     std::cout << std::fixed << std::setprecision(2);
     std::cout << "CPU Price:    " << cpu_result.price << " 원\n";

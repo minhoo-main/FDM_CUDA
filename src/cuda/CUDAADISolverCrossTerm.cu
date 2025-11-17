@@ -1,3 +1,4 @@
+#include "precision.h"
 #include "CUDAADISolverCrossTerm.cuh"
 #include <cuda_runtime.h>
 #include <iostream>
@@ -53,7 +54,7 @@ __global__ void computeCrossTermKernel(
         int idx = i * N2 + j;
 
         // 4-point stencil for mixed derivative
-        double mixed_deriv =
+        ELSPricer::Real mixed_deriv =
             d_V[(i+1) * N2 + (j+1)] - d_V[(i+1) * N2 + (j-1)] -
             d_V[(i-1) * N2 + (j+1)] + d_V[(i-1) * N2 + (j-1)];
 
@@ -75,7 +76,7 @@ __global__ void addCrossTermKernel(
     const double* d_V,
     const double* d_cross,
     double* d_RHS,
-    double dt,
+    ELSPricer::Real dt,
     int N1,
     int N2)
 {
@@ -142,9 +143,9 @@ void CUDAADISolverCrossTerm::precomputeCoefficients() {
 
     // S1 direction coefficients
     for (int i = 1; i < N1_ - 1; ++i) {
-        double S1 = grid_.getS1(i);
-        double a1 = 0.5 * sigma1_ * sigma1_ * S1 * S1 / (dS1_ * dS1_);
-        double b1 = (r_ - q1_) * S1 / (2.0 * dS1_);
+        ELSPricer::Real S1 = grid_.getS1(i);
+        ELSPricer::Real a1 = 0.5 * sigma1_ * sigma1_ * S1 * S1 / (dS1_ * dS1_);
+        ELSPricer::Real b1 = (r_ - q1_) * S1 / (2.0 * dS1_);
 
         alpha1_[i - 1] = -0.5 * dt_ * (a1 - b1);
         beta1_[i] = 1.0 + dt_ * (a1 + 0.5 * r_);
@@ -155,9 +156,9 @@ void CUDAADISolverCrossTerm::precomputeCoefficients() {
 
     // S2 direction coefficients
     for (int j = 1; j < N2_ - 1; ++j) {
-        double S2 = grid_.getS2(j);
-        double a2 = 0.5 * sigma2_ * sigma2_ * S2 * S2 / (dS2_ * dS2_);
-        double b2 = (r_ - q2_) * S2 / (2.0 * dS2_);
+        ELSPricer::Real S2 = grid_.getS2(j);
+        ELSPricer::Real a2 = 0.5 * sigma2_ * sigma2_ * S2 * S2 / (dS2_ * dS2_);
+        ELSPricer::Real b2 = (r_ - q2_) * S2 / (2.0 * dS2_);
 
         alpha2_[j - 1] = -0.5 * dt_ * (a2 - b2);
         beta2_[j] = 1.0 + dt_ * (a2 + 0.5 * r_);
@@ -239,11 +240,11 @@ void CUDAADISolverCrossTerm::cleanup() {
     if (d_gamma2_) CUDA_CHECK(cudaFree(d_gamma2_));
 }
 
-void CUDAADISolverCrossTerm::copyToDevice(const std::vector<double>& V_host) {
+void CUDAADISolverCrossTerm::copyToDevice(const std::vector<ELSPricer::Real>& V_host) {
     CUDA_CHECK(cudaMemcpy(d_V_, V_host.data(), N1_ * N2_ * sizeof(double), cudaMemcpyHostToDevice));
 }
 
-void CUDAADISolverCrossTerm::copyFromDevice(std::vector<double>& V_host) {
+void CUDAADISolverCrossTerm::copyFromDevice(std::vector<ELSPricer::Real>& V_host) {
     V_host.resize(N1_ * N2_);
     CUDA_CHECK(cudaMemcpy(V_host.data(), d_V_, N1_ * N2_ * sizeof(double), cudaMemcpyDeviceToHost));
 }
@@ -303,7 +304,7 @@ void CUDAADISolverCrossTerm::applyBoundaryConditionsGPU(double* d_V) {
     applyBoundaryConditions(d_V, N1_, N2_);
 }
 
-std::vector<double> CUDAADISolverCrossTerm::solve(const std::vector<double>& V_T) {
+std::vector<ELSPricer::Real> CUDAADISolverCrossTerm::solve(const std::vector<ELSPricer::Real>& V_T) {
     // Copy initial data to device
     copyToDevice(V_T);
 
@@ -326,14 +327,14 @@ std::vector<double> CUDAADISolverCrossTerm::solve(const std::vector<double>& V_T
     }
 
     // Copy result back
-    std::vector<double> V_0;
+    std::vector<ELSPricer::Real> V_0;
     copyFromDevice(V_0);
 
     return V_0;
 }
 
-std::vector<double> CUDAADISolverCrossTerm::solveWithEarlyRedemption(
-    const std::vector<double>& V_T,
+std::vector<ELSPricer::Real> CUDAADISolverCrossTerm::solveWithEarlyRedemption(
+    const std::vector<ELSPricer::Real>& V_T,
     const ELSProduct& product)
 {
     copyToDevice(V_T);
@@ -343,11 +344,11 @@ std::vector<double> CUDAADISolverCrossTerm::solveWithEarlyRedemption(
 
     // Find observation indices
     std::vector<int> obsIndices;
-    for (double obsDate : obsDates) {
+    for (ELSPricer::Real obsDate : obsDates) {
         int idx = 0;
-        double minDiff = std::abs(timeGrid[0] - obsDate);
+        ELSPricer::Real minDiff = std::abs(timeGrid[0] - obsDate);
         for (int n = 1; n <= Nt_; ++n) {
-            double diff = std::abs(timeGrid[n] - obsDate);
+            ELSPricer::Real diff = std::abs(timeGrid[n] - obsDate);
             if (diff < minDiff) {
                 minDiff = diff;
                 idx = n;
@@ -363,7 +364,7 @@ std::vector<double> CUDAADISolverCrossTerm::solveWithEarlyRedemption(
         // Check early redemption (simplified - using CPU for now)
         if (obsIdx >= 0 && n == obsIndices[obsIdx]) {
             // Copy to host, apply redemption, copy back
-            std::vector<double> V_host;
+            std::vector<ELSPricer::Real> V_host;
             copyFromDevice(V_host);
 
             const auto& S1 = grid_.getS1();
@@ -394,7 +395,7 @@ std::vector<double> CUDAADISolverCrossTerm::solveWithEarlyRedemption(
         }
     }
 
-    std::vector<double> V_0;
+    std::vector<ELSPricer::Real> V_0;
     copyFromDevice(V_0);
 
     return V_0;
@@ -421,7 +422,7 @@ PricingResultCrossTermGPU priceELSCrossTermGPU(
     }
 
     // Create terminal payoff
-    std::vector<double> V_T(N1 * N2);
+    std::vector<ELSPricer::Real> V_T(N1 * N2);
     const auto& S1 = grid->getS1();
     const auto& S2 = grid->getS2();
 
@@ -440,10 +441,10 @@ PricingResultCrossTermGPU priceELSCrossTermGPU(
     // Extract price at (S1_0, S2_0)
     int i0 = grid->findS1Index(product.getS1_0());
     int j0 = grid->findS2Index(product.getS2_0());
-    double price = V_0[i0 * N2 + j0];
+    ELSPricer::Real price = V_0[i0 * N2 + j0];
 
     auto end = std::chrono::high_resolution_clock::now();
-    double computeTime = std::chrono::duration<double>(end - start).count();
+    ELSPricer::Real computeTime = std::chrono::duration<ELSPricer::Real>(end - start).count();
 
     if (verbose) {
         std::cout << "\n--- Pricing Result (GPU with Cross-Term) ---\n";

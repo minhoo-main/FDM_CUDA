@@ -1,3 +1,4 @@
+#include "precision.h"
 #include "CUDAADISolver.cuh"
 #include <cuda_runtime.h>
 #include <iostream>
@@ -24,11 +25,11 @@ void applyEarlyRedemption(
     double* d_V,
     const double* d_S1,
     const double* d_S2,
-    double S1_0,
-    double S2_0,
-    double barrier,
-    double principal,
-    double coupon,
+    ELSPricer::Real S1_0,
+    ELSPricer::Real S2_0,
+    ELSPricer::Real barrier,
+    ELSPricer::Real principal,
+    ELSPricer::Real coupon,
     int N1,
     int N2);
 
@@ -82,9 +83,9 @@ void CUDAADISolver::precomputeCoefficients() {
 
     // S1 direction
     for (int i = 1; i < N1_ - 1; ++i) {
-        double S1 = grid_.getS1(i);
-        double a1 = 0.5 * sigma1_ * sigma1_ * S1 * S1 / (dS1_ * dS1_);
-        double b1 = (r_ - q1_) * S1 / (2.0 * dS1_);
+        ELSPricer::Real S1 = grid_.getS1(i);
+        ELSPricer::Real a1 = 0.5 * sigma1_ * sigma1_ * S1 * S1 / (dS1_ * dS1_);
+        ELSPricer::Real b1 = (r_ - q1_) * S1 / (2.0 * dS1_);
 
         alpha1_[i - 1] = -0.5 * dt_ * (a1 - b1);
         beta1_[i] = 1.0 + dt_ * (a1 + 0.5 * r_);
@@ -95,9 +96,9 @@ void CUDAADISolver::precomputeCoefficients() {
 
     // S2 direction
     for (int j = 1; j < N2_ - 1; ++j) {
-        double S2 = grid_.getS2(j);
-        double a2 = 0.5 * sigma2_ * sigma2_ * S2 * S2 / (dS2_ * dS2_);
-        double b2 = (r_ - q2_) * S2 / (2.0 * dS2_);
+        ELSPricer::Real S2 = grid_.getS2(j);
+        ELSPricer::Real a2 = 0.5 * sigma2_ * sigma2_ * S2 * S2 / (dS2_ * dS2_);
+        ELSPricer::Real b2 = (r_ - q2_) * S2 / (2.0 * dS2_);
 
         alpha2_[j - 1] = -0.5 * dt_ * (a2 - b2);
         beta2_[j] = 1.0 + dt_ * (a2 + 0.5 * r_);
@@ -168,11 +169,11 @@ void CUDAADISolver::cleanup() {
     if (d_gamma2_) CUDA_CHECK(cudaFree(d_gamma2_));
 }
 
-void CUDAADISolver::copyToDevice(const std::vector<double>& V_host) {
+void CUDAADISolver::copyToDevice(const std::vector<ELSPricer::Real>& V_host) {
     CUDA_CHECK(cudaMemcpy(d_V_, V_host.data(), N1_ * N2_ * sizeof(double), cudaMemcpyHostToDevice));
 }
 
-void CUDAADISolver::copyFromDevice(std::vector<double>& V_host) {
+void CUDAADISolver::copyFromDevice(std::vector<ELSPricer::Real>& V_host) {
     V_host.resize(N1_ * N2_);
     CUDA_CHECK(cudaMemcpy(V_host.data(), d_V_, N1_ * N2_ * sizeof(double), cudaMemcpyDeviceToHost));
 }
@@ -206,7 +207,7 @@ void CUDAADISolver::applyBoundaryConditionsGPU() {
     applyBoundaryConditions(d_V_, N1_, N2_);
 }
 
-std::vector<double> CUDAADISolver::solve(const std::vector<double>& V_T) {
+std::vector<ELSPricer::Real> CUDAADISolver::solve(const std::vector<ELSPricer::Real>& V_T) {
     // Copy initial data to device
     copyToDevice(V_T);
 
@@ -218,14 +219,14 @@ std::vector<double> CUDAADISolver::solve(const std::vector<double>& V_T) {
     }
 
     // Copy result back
-    std::vector<double> V_0;
+    std::vector<ELSPricer::Real> V_0;
     copyFromDevice(V_0);
 
     return V_0;
 }
 
-std::vector<double> CUDAADISolver::solveWithEarlyRedemption(
-    const std::vector<double>& V_T,
+std::vector<ELSPricer::Real> CUDAADISolver::solveWithEarlyRedemption(
+    const std::vector<ELSPricer::Real>& V_T,
     const ELSProduct& product)
 {
     copyToDevice(V_T);
@@ -235,11 +236,11 @@ std::vector<double> CUDAADISolver::solveWithEarlyRedemption(
 
     // Find observation indices
     std::vector<int> obsIndices;
-    for (double obsDate : obsDates) {
+    for (ELSPricer::Real obsDate : obsDates) {
         int idx = 0;
-        double minDiff = std::abs(timeGrid[0] - obsDate);
+        ELSPricer::Real minDiff = std::abs(timeGrid[0] - obsDate);
         for (int n = 1; n <= Nt_; ++n) {
-            double diff = std::abs(timeGrid[n] - obsDate);
+            ELSPricer::Real diff = std::abs(timeGrid[n] - obsDate);
             if (diff < minDiff) {
                 minDiff = diff;
                 idx = n;
@@ -284,7 +285,7 @@ std::vector<double> CUDAADISolver::solveWithEarlyRedemption(
         }
     }
 
-    std::vector<double> V_0;
+    std::vector<ELSPricer::Real> V_0;
     copyFromDevice(V_0);
 
     return V_0;
@@ -311,7 +312,7 @@ PricingResult priceELSGPU(
     }
 
     // Create terminal payoff
-    std::vector<double> V_T(N1 * N2);
+    std::vector<ELSPricer::Real> V_T(N1 * N2);
     const auto& S1 = grid->getS1();
     const auto& S2 = grid->getS2();
 
@@ -338,11 +339,11 @@ PricingResult priceELSGPU(
     // Extract price
     int i0 = grid->findS1Index(product.getS1_0());
     int j0 = grid->findS2Index(product.getS2_0());
-    double price = V_0[i0 * N2 + j0];
+    ELSPricer::Real price = V_0[i0 * N2 + j0];
 
     auto end = std::chrono::high_resolution_clock::now();
-    double totalTime = std::chrono::duration<double>(end - start).count();
-    double computeTime = std::chrono::duration<double>(compute_end - compute_start).count();
+    ELSPricer::Real totalTime = std::chrono::duration<ELSPricer::Real>(end - start).count();
+    ELSPricer::Real computeTime = std::chrono::duration<ELSPricer::Real>(compute_end - compute_start).count();
 
     if (verbose) {
         std::cout << "\n--- Pricing Result (GPU) ---\n";

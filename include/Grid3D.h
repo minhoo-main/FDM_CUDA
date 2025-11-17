@@ -1,3 +1,4 @@
+#include "precision.h"
 #pragma once
 
 #include <vector>
@@ -12,7 +13,7 @@ namespace ELSPricer {
  */
 class Grid3D {
 public:
-    Grid3D(double S1_max, double S2_max, double S3_max, double T,
+    Grid3D(Real S1_max, Real S2_max, Real S3_max, Real T,
            int N1, int N2, int N3, int Nt)
         : S1_max_(S1_max), S2_max_(S2_max), S3_max_(S3_max), T_(T),
           N1_(N1), N2_(N2), N3_(N3), Nt_(Nt)
@@ -63,15 +64,15 @@ public:
     int getN3() const { return N3_; }
     int getNt() const { return Nt_; }
 
-    double getDS1() const { return dS1_; }
-    double getDS2() const { return dS2_; }
-    double getDS3() const { return dS3_; }
-    double getDt() const { return dt_; }
+    Real getDS1() const { return dS1_; }
+    Real getDS2() const { return dS2_; }
+    Real getDS3() const { return dS3_; }
+    Real getDt() const { return dt_; }
 
-    const std::vector<double>& getS1() const { return S1_; }
-    const std::vector<double>& getS2() const { return S2_; }
-    const std::vector<double>& getS3() const { return S3_; }
-    const std::vector<double>& getTime() const { return time_; }
+    const std::vector<Real>& getS1() const { return S1_; }
+    const std::vector<Real>& getS2() const { return S2_; }
+    const std::vector<Real>& getS3() const { return S3_; }
+    const std::vector<Real>& getTime() const { return time_; }
 
     // Index helpers
     inline size_t index(int i, int j, int k) const {
@@ -79,11 +80,11 @@ public:
     }
 
 private:
-    double S1_max_, S2_max_, S3_max_, T_;
+    Real S1_max_, S2_max_, S3_max_, T_;
     int N1_, N2_, N3_, Nt_;
-    double dS1_, dS2_, dS3_, dt_;
+    Real dS1_, dS2_, dS3_, dt_;
 
-    std::vector<double> S1_, S2_, S3_, time_;
+    std::vector<Real> S1_, S2_, S3_, time_;
 };
 
 } // namespace ELSPricer

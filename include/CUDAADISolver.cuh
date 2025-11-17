@@ -1,3 +1,4 @@
+#include "precision.h"
 #pragma once
 
 #include "Grid2D.h"
@@ -25,11 +26,11 @@ public:
     ~CUDAADISolver();
 
     // Solve the PDE on GPU
-    std::vector<double> solve(const std::vector<double>& V_T);
+    std::vector<ELSPricer::Real> solve(const std::vector<ELSPricer::Real>& V_T);
 
     // Solve with early redemption
-    std::vector<double> solveWithEarlyRedemption(
-        const std::vector<double>& V_T,
+    std::vector<ELSPricer::Real> solveWithEarlyRedemption(
+        const std::vector<ELSPricer::Real>& V_T,
         const ELSProduct& product
     );
 
@@ -38,9 +39,9 @@ private:
     const ELSProduct& product_;
 
     int N1_, N2_, Nt_;
-    double dS1_, dS2_, dt_;
-    double sigma1_, sigma2_, rho_;
-    double r_, q1_, q2_;
+    ELSPricer::Real dS1_, dS2_, dt_;
+    ELSPricer::Real sigma1_, sigma2_, rho_;
+    ELSPricer::Real r_, q1_, q2_;
 
     // Device pointers
     double* d_V_;           // Current solution on device
@@ -56,8 +57,8 @@ private:
     double* d_gamma2_;
 
     // Host coefficients
-    std::vector<double> alpha1_, beta1_, gamma1_;
-    std::vector<double> alpha2_, beta2_, gamma2_;
+    std::vector<ELSPricer::Real> alpha1_, beta1_, gamma1_;
+    std::vector<ELSPricer::Real> alpha2_, beta2_, gamma2_;
 
     // Initialize GPU memory and coefficients
     void initialize();
@@ -65,8 +66,8 @@ private:
     void precomputeCoefficients();
 
     // GPU operations
-    void copyToDevice(const std::vector<double>& V_host);
-    void copyFromDevice(std::vector<double>& V_host);
+    void copyToDevice(const std::vector<ELSPricer::Real>& V_host);
+    void copyFromDevice(std::vector<ELSPricer::Real>& V_host);
 
     void solveS1DirectionGPU();
     void solveS2DirectionGPU();

@@ -1,3 +1,4 @@
+#include "precision.h"
 #ifndef CUDA_ADISOLVER_CROSSTERM_CUH
 #define CUDA_ADISOLVER_CROSSTERM_CUH
 
@@ -24,9 +25,9 @@ public:
     CUDAADISolverCrossTerm(const Grid2D& grid, const ELSProduct& product);
     ~CUDAADISolverCrossTerm();
 
-    std::vector<double> solve(const std::vector<double>& V_T);
-    std::vector<double> solveWithEarlyRedemption(
-        const std::vector<double>& V_T,
+    std::vector<ELSPricer::Real> solve(const std::vector<ELSPricer::Real>& V_T);
+    std::vector<ELSPricer::Real> solveWithEarlyRedemption(
+        const std::vector<ELSPricer::Real>& V_T,
         const ELSProduct& product);
 
 private:
@@ -34,8 +35,8 @@ private:
     void cleanup();
     void precomputeCoefficients();
 
-    void copyToDevice(const std::vector<double>& V_host);
-    void copyFromDevice(std::vector<double>& V_host);
+    void copyToDevice(const std::vector<ELSPricer::Real>& V_host);
+    void copyFromDevice(std::vector<ELSPricer::Real>& V_host);
 
     void computeCrossTermGPU(const double* d_V_in, double* d_cross_out);
     void addCrossTermToRHSGPU(const double* d_V, double* d_RHS);
@@ -48,13 +49,13 @@ private:
     const ELSProduct& product_;
 
     int N1_, N2_, Nt_;
-    double dS1_, dS2_, dt_;
-    double sigma1_, sigma2_, rho_, r_, q1_, q2_;
+    ELSPricer::Real dS1_, dS2_, dt_;
+    ELSPricer::Real sigma1_, sigma2_, rho_, r_, q1_, q2_;
 
     // Host arrays
-    std::vector<double> alpha1_, beta1_, gamma1_;
-    std::vector<double> alpha2_, beta2_, gamma2_;
-    std::vector<double> cross_coef_;
+    std::vector<ELSPricer::Real> alpha1_, beta1_, gamma1_;
+    std::vector<ELSPricer::Real> alpha2_, beta2_, gamma2_;
+    std::vector<ELSPricer::Real> cross_coef_;
 
     // Device pointers
     double* d_V_;
@@ -76,9 +77,9 @@ private:
 };
 
 struct PricingResultCrossTermGPU {
-    double price;
-    std::vector<double> grid;
-    double computeTime;
+    ELSPricer::Real price;
+    std::vector<ELSPricer::Real> grid;
+    ELSPricer::Real computeTime;
 };
 
 PricingResultCrossTermGPU priceELSCrossTermGPU(
