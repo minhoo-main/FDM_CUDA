@@ -69,7 +69,7 @@ Real ELSProduct::payoffAtMaturity(Real S1, Real S2, bool kiOccurred) const {
 
     if (kiOccurred) {
         // KI occurred: min(principal, principal * performance)
-        return principal_ * std::min(1.0, perf);
+        return principal_ * std::min(Real(1.0), perf);
     } else {
         // No KI: principal + final coupon
         return principal_ + coupons_.back();
