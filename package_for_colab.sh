@@ -18,6 +18,7 @@ cp include/*.cuh /tmp/els-pricer-cpp/include/ 2>/dev/null || true
 cp src/Grid2D.cpp /tmp/els-pricer-cpp/src/
 cp src/ELSProduct.cpp /tmp/els-pricer-cpp/src/
 cp src/ADISolver.cpp /tmp/els-pricer-cpp/src/
+cp src/ADISolverCrossTerm.cpp /tmp/els-pricer-cpp/src/
 
 # Copy CUDA files
 cp src/cuda/*.cu /tmp/els-pricer-cpp/src/cuda/
@@ -31,9 +32,11 @@ cp examples/benchmark_gpu.cpp /tmp/els-pricer-cpp/examples/
 cp examples/benchmark_cpu_vs_gpu.cpp /tmp/els-pricer-cpp/examples/ 2>/dev/null || true
 cp examples/benchmark_nt_scaling.cpp /tmp/els-pricer-cpp/examples/ 2>/dev/null || true
 cp examples/benchmark_grid_scaling.cpp /tmp/els-pricer-cpp/examples/ 2>/dev/null || true
+cp examples/compare_crossterm.cpp /tmp/els-pricer-cpp/examples/ 2>/dev/null || true
 
 # Copy test files
 cp test_final_validation.cpp /tmp/els-pricer-cpp/ 2>/dev/null || true
+cp test_crossterm_cpu.cpp /tmp/els-pricer-cpp/ 2>/dev/null || true
 mkdir -p /tmp/els-pricer-cpp/tests
 cp tests/test_pricing.cpp /tmp/els-pricer-cpp/tests/ 2>/dev/null || true
 cp tests/test_cpu.cpp /tmp/els-pricer-cpp/tests/ 2>/dev/null || true
@@ -52,6 +55,7 @@ cp COLAB_BENCHMARK_RESULTS.md /tmp/els-pricer-cpp/ 2>/dev/null || true
 # Copy setup scripts
 cp colab_setup.sh /tmp/els-pricer-cpp/
 cp ELS_Pricer_Colab.ipynb /tmp/els-pricer-cpp/
+cp ELS_Pricer_CrossTerm_Colab.ipynb /tmp/els-pricer-cpp/
 
 # Create tarball
 cd /tmp
