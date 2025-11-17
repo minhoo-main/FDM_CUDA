@@ -22,12 +22,14 @@ set(SOURCES
     src/Grid2D.cpp
     src/ELSProduct.cpp
     src/ADISolver.cpp
+    src/ADISolverCrossTerm.cpp
 )
 
 # CUDA source files
 set(CUDA_SOURCES
     src/cuda/batched_thomas.cu
     src/cuda/CUDAADISolver.cu
+    src/cuda/CUDAADISolverCrossTerm.cu
 )
 
 # Create library
@@ -66,6 +68,10 @@ target_link_libraries(validate_price els_pricer_lib)
 # Test executable (optional)
 add_executable(test_els tests/test_pricing.cpp)
 target_link_libraries(test_els els_pricer_lib)
+
+# Cross-term comparison benchmark
+add_executable(compare_crossterm examples/compare_crossterm.cpp)
+target_link_libraries(compare_crossterm els_pricer_lib)
 
 # Print configuration
 message(STATUS "CUDA Version: ${CUDAToolkit_VERSION}")
