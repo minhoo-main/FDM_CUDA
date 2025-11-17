@@ -55,6 +55,10 @@ target_link_libraries(benchmark_cpu_vs_gpu els_pricer_lib)
 add_executable(benchmark_nt_scaling examples/benchmark_nt_scaling.cpp)
 target_link_libraries(benchmark_nt_scaling els_pricer_lib)
 
+# Spatial grid scaling benchmark
+add_executable(benchmark_grid_scaling examples/benchmark_grid_scaling.cpp)
+target_link_libraries(benchmark_grid_scaling els_pricer_lib)
+
 # Price validation test
 add_executable(validate_price examples/validate_price.cpp)
 target_link_libraries(validate_price els_pricer_lib)

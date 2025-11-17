@@ -24,11 +24,22 @@ cp src/cuda/*.cu /tmp/els-pricer-cpp/src/cuda/
 cp src/cuda/*.cuh /tmp/els-pricer-cpp/src/cuda/ 2>/dev/null || true
 
 # Copy example files
+cp examples/main.cpp /tmp/els-pricer-cpp/examples/ 2>/dev/null || true
 cp examples/validate_price_cpu.cpp /tmp/els-pricer-cpp/examples/
+cp examples/validate_price.cpp /tmp/els-pricer-cpp/examples/ 2>/dev/null || true
 cp examples/benchmark_gpu.cpp /tmp/els-pricer-cpp/examples/
+cp examples/benchmark_cpu_vs_gpu.cpp /tmp/els-pricer-cpp/examples/ 2>/dev/null || true
+cp examples/benchmark_nt_scaling.cpp /tmp/els-pricer-cpp/examples/ 2>/dev/null || true
+cp examples/benchmark_grid_scaling.cpp /tmp/els-pricer-cpp/examples/ 2>/dev/null || true
 
 # Copy test files
 cp test_final_validation.cpp /tmp/els-pricer-cpp/ 2>/dev/null || true
+mkdir -p /tmp/els-pricer-cpp/tests
+cp tests/test_pricing.cpp /tmp/els-pricer-cpp/tests/ 2>/dev/null || true
+cp tests/test_cpu.cpp /tmp/els-pricer-cpp/tests/ 2>/dev/null || true
+
+# Copy CMake files
+cp CMakeLists.txt /tmp/els-pricer-cpp/
 
 # Copy documentation
 cp README.md /tmp/els-pricer-cpp/ 2>/dev/null || echo "# ELS Pricer" > /tmp/els-pricer-cpp/README.md
@@ -36,6 +47,7 @@ cp BUGFIX_SUMMARY.txt /tmp/els-pricer-cpp/ 2>/dev/null || true
 cp BUGFIX_EARLY_REDEMPTION.md /tmp/els-pricer-cpp/ 2>/dev/null || true
 cp KI_TRACKING_BUG.md /tmp/els-pricer-cpp/ 2>/dev/null || true
 cp COLAB_GUIDE.md /tmp/els-pricer-cpp/ 2>/dev/null || true
+cp COLAB_BENCHMARK_RESULTS.md /tmp/els-pricer-cpp/ 2>/dev/null || true
 
 # Copy setup scripts
 cp colab_setup.sh /tmp/els-pricer-cpp/

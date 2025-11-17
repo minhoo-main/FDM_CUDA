@@ -11,34 +11,34 @@ using namespace ELSPricer;
 
 int main() {
     std::cout << "═══════════════════════════════════════════════════════════════════\n";
-    std::cout << "   Time Grid Scaling Analysis (100×100 fixed)\n";
+    std::cout << "   Spatial Grid Scaling Analysis (Nt=1000 fixed)\n";
     std::cout << "═══════════════════════════════════════════════════════════════════\n\n";
 
     auto product = createSampleELS();
 
-    // Nt values to test (200 간격)
-    std::vector<int> nt_values = {200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000};
+    // Grid sizes to test (N×N grids)
+    std::vector<int> grid_sizes = {100, 200, 300, 400, 500, 600, 700};
 
-    std::cout << std::setw(6) << "Nt"
+    std::cout << std::setw(10) << "Grid Size"
               << std::setw(14) << "CPU Time(s)"
               << std::setw(14) << "GPU Time(s)"
               << std::setw(12) << "Speedup"
               << std::setw(14) << "CPU Price"
               << std::setw(14) << "GPU Price\n";
-    std::cout << std::string(74, '=') << "\n";
+    std::cout << std::string(78, '=') << "\n";
 
-    std::ofstream csv("nt_scaling_results.csv");
-    csv << "Nt,CPU_Time,GPU_Time,Speedup,CPU_Price,GPU_Price,Total_Points\n";
+    std::ofstream csv("grid_scaling_results.csv");
+    csv << "N1,N2,Nt,Grid_Size,Total_Points,CPU_Time,GPU_Time,Speedup,CPU_Price,GPU_Price\n";
 
-    for (int nt : nt_values) {
-        std::cout << std::setw(6) << nt << std::flush;
+    for (int N : grid_sizes) {
+        std::cout << std::setw(7) << N << "×" << N << std::flush;
 
         // CPU test
-        auto cpu_result = priceELS(product, 100, 100, nt, false);
+        auto cpu_result = priceELS(product, N, N, 1000, false);
         std::cout << std::setw(14) << std::fixed << std::setprecision(4) << cpu_result.computeTime << std::flush;
 
         // GPU test
-        auto gpu_result = CUDA::priceELSGPU(product, 100, 100, nt, false);
+        auto gpu_result = CUDA::priceELSGPU(product, N, N, 1000, false);
         std::cout << std::setw(14) << std::setprecision(4) << gpu_result.computeTime << std::flush;
 
         // Speedup
@@ -50,18 +50,22 @@ int main() {
                   << std::setw(14) << gpu_result.price << "\n";
 
         // Write to CSV
-        csv << nt << ","
+        long long total_points = (long long)N * N * 1000;
+        csv << N << ","
+            << N << ","
+            << 1000 << ","
+            << N << "×" << N << ","
+            << total_points << ","
             << cpu_result.computeTime << ","
             << gpu_result.computeTime << ","
             << speedup << ","
             << cpu_result.price << ","
-            << gpu_result.price << ","
-            << (100 * 100 * nt) << "\n";
+            << gpu_result.price << "\n";
     }
 
     csv.close();
-    std::cout << std::string(74, '=') << "\n";
-    std::cout << "\n✓ Results saved to: nt_scaling_results.csv\n";
+    std::cout << std::string(78, '=') << "\n";
+    std::cout << "\n✓ Results saved to: grid_scaling_results.csv\n";
     std::cout << "═══════════════════════════════════════════════════════════════════\n";
 
     return 0;
