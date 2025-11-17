@@ -125,8 +125,27 @@ A: 완벽히 호환. Real = double이면 기존 FP64와 동일
 
 ---
 
+## 🔧 버그 수정 (2024-11-17)
+
+**Issue**: FP32 전환 시 컴파일 에러
+```
+error: no matching function for call to 'min(double, ELSPricer::Real&)'
+std::min(1.0, perf)  // 1.0=double, perf=float → 타입 불일치!
+```
+
+**Fix**: Literal을 Real로 캐스팅
+```cpp
+std::min(Real(1.0), perf)  // ✅ 양쪽 모두 Real 타입
+```
+
+**위치**: src/ELSProduct.cpp:72
+
+---
+
 ## 🎉 완료!
 
-이제 Colab에서 새 노트북을 열어 테스트하세요!
+이제 Colab에서 테스트하세요!
 
-**Link**: https://github.com/minhoo-main/FDM_CUDA/blob/master/ELS_Pricer_FP32_Benchmark_Colab.ipynb
+**최신 버전**: https://github.com/minhoo-main/FDM_CUDA (commit 2c14aeb)
+**새 노트북**: https://github.com/minhoo-main/FDM_CUDA/blob/master/ELS_Pricer_FP32_Benchmark_Colab.ipynb
+**기존 노트북**: ELS_Pricer_GPU_Benchmark_Extended_Fixed_v2.ipynb + Step 3.5 추가
