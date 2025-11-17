@@ -1,4 +1,3 @@
-#include "precision.h"
 #pragma once
 
 #include "Grid2D.h"
@@ -25,11 +24,11 @@ public:
     // Solve the PDE
     // V_T: Terminal payoff (flattened: V[i * N2 + j])
     // Returns: V_0 at t=0 (flattened)
-    std::vector<Real> solve(const std::vector<Real>& V_T);
+    std::vector<float> solve(const std::vector<float>& V_T);
 
     // Solve with early redemption callbacks
-    std::vector<Real> solveWithEarlyRedemption(
-        const std::vector<Real>& V_T,
+    std::vector<float> solveWithEarlyRedemption(
+        const std::vector<float>& V_T,
         const ELSProduct& product
     );
 
@@ -39,40 +38,40 @@ protected:
     const ELSProduct& product_;
 
     int N1_, N2_, Nt_;
-    Real dS1_, dS2_, dt_;
+    float dS1_, dS2_, dt_;
 
     // PDE coefficients
-    Real sigma1_, sigma2_, rho_;
-    Real r_, q1_, q2_;
+    float sigma1_, sigma2_, rho_;
+    float r_, q1_, q2_;
 
     // Tridiagonal coefficients (precomputed)
-    std::vector<Real> alpha1_, beta1_, gamma1_;  // S1 direction
-    std::vector<Real> alpha2_, beta2_, gamma2_;  // S2 direction
+    std::vector<float> alpha1_, beta1_, gamma1_;  // S1 direction
+    std::vector<float> alpha2_, beta2_, gamma2_;  // S2 direction
 
     // Initialize coefficients
     void precomputeCoefficients();
 
     // ADI half-steps
-    void solveS1Direction(const std::vector<Real>& V_in, std::vector<Real>& V_out);
-    void solveS2Direction(const std::vector<Real>& V_in, std::vector<Real>& V_out);
+    void solveS1Direction(const std::vector<float>& V_in, std::vector<float>& V_out);
+    void solveS2Direction(const std::vector<float>& V_in, std::vector<float>& V_out);
 
     // Apply boundary conditions
-    void applyBoundaryConditions(std::vector<Real>& V);
+    void applyBoundaryConditions(std::vector<float>& V);
 
     // Apply early redemption
     void applyEarlyRedemption(
-        std::vector<Real>& V,
+        std::vector<float>& V,
         int obsIdx,
         const ELSProduct& product
     );
 
     // Thomas algorithm for tridiagonal system
     static void thomasAlgorithm(
-        const std::vector<Real>& lower,
-        const std::vector<Real>& diag,
-        const std::vector<Real>& upper,
-        const std::vector<Real>& rhs,
-        std::vector<Real>& solution
+        const std::vector<float>& lower,
+        const std::vector<float>& diag,
+        const std::vector<float>& upper,
+        const std::vector<float>& rhs,
+        std::vector<float>& solution
     );
 };
 
@@ -80,9 +79,9 @@ protected:
  * Helper function to price ELS using ADI solver
  */
 struct PricingResult {
-    Real price;
-    std::vector<Real> priceGrid;
-    Real computeTime;
+    float price;
+    std::vector<float> priceGrid;
+    float computeTime;
 };
 
 PricingResult priceELS(

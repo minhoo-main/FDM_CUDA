@@ -10,10 +10,10 @@ using namespace ELSPricer;
 
 struct BenchmarkResult {
     int N1, N2, Nt;
-    Real price;
-    Real time;
+    float price;
+    float time;
     long long totalPoints;
-    Real pointsPerSec;
+    float pointsPerSec;
 };
 
 void printHeader() {
@@ -180,7 +180,7 @@ int main() {
     // Known Python timings
     struct PythonBenchmark {
         int N1, N2, Nt;
-        Real pythonTime;
+        float pythonTime;
     };
 
     std::vector<PythonBenchmark> pythonData = {
@@ -192,7 +192,7 @@ int main() {
         // Find matching C++ result
         for (const auto& cpp : results) {
             if (cpp.N1 == py.N1 && cpp.N2 == py.N2 && cpp.Nt == py.Nt) {
-                Real speedup = py.pythonTime / cpp.time;
+                float speedup = py.pythonTime / cpp.time;
                 std::cout << std::setw(7) << cpp.N1 << "×" << cpp.N2 << "×" << cpp.Nt
                           << std::setw(15) << std::fixed << std::setprecision(2) << py.pythonTime << "s"
                           << std::setw(15) << cpp.time << "s"

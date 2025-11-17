@@ -1,4 +1,3 @@
-#include "precision.h"
 #include <cuda_runtime.h>
 #include <stdio.h>
 
@@ -21,11 +20,11 @@ namespace CUDA {
  *   solution: Solutions [batch_size x N]
  */
 __global__ void batchedThomasKernel(
-    const ELSPricer::Real* __restrict__ lower,
-    const ELSPricer::Real* __restrict__ diag,
-    const ELSPricer::Real* __restrict__ upper,
-    const ELSPricer::Real* __restrict__ rhs,
-    ELSPricer::Real* __restrict__ solution,
+    const float* __restrict__ lower,
+    const float* __restrict__ diag,
+    const float* __restrict__ upper,
+    const float* __restrict__ rhs,
+    float* __restrict__ solution,
     int N,
     int batch_size)
 {
@@ -33,13 +32,13 @@ __global__ void batchedThomasKernel(
     if (bid >= batch_size) return;
 
     // Each block processes one tridiagonal system
-    extern __shared__ ELSPricer::Real shared_mem[];
+    extern __shared__ float shared_mem[];
 
-    ELSPricer::Real* c_prime = shared_mem;           // [N-1]
-    ELSPricer::Real* d_prime = &shared_mem[N - 1];   // [N]
+    float* c_prime = shared_mem;           // [N-1]
+    float* d_prime = &shared_mem[N - 1];   // [N]
 
-    const ELSPricer::Real* rhs_b = &rhs[bid * N];
-    ELSPricer::Real* sol_b = &solution[bid * N];
+    const float* rhs_b = &rhs[bid * N];
+    float* sol_b = &solution[bid * N];
 
     // Forward sweep (single thread per block for simplicity)
     // For large N, can parallelize this too
@@ -50,14 +49,14 @@ __global__ void batchedThomasKernel(
 
         // Middle rows
         for (int i = 1; i < N - 1; ++i) {
-            ELSPricer::Real denom = diag[i] - lower[i - 1] * c_prime[i - 1];
+            float denom = diag[i] - lower[i - 1] * c_prime[i - 1];
             c_prime[i] = upper[i] / denom;
             d_prime[i] = (rhs_b[i] - lower[i - 1] * d_prime[i - 1]) / denom;
         }
 
         // Last row
         int i = N - 1;
-        ELSPricer::Real denom = diag[i] - lower[i - 1] * c_prime[i - 1];
+        float denom = diag[i] - lower[i - 1] * c_prime[i - 1];
         d_prime[i] = (rhs_b[i] - lower[i - 1] * d_prime[i - 1]) / denom;
 
         // Backward substitution
@@ -73,27 +72,27 @@ __global__ void batchedThomasKernel(
  * Uses parallel reduction techniques
  */
 __global__ void batchedThomasKernelOptimized(
-    const ELSPricer::Real* __restrict__ lower,
-    const ELSPricer::Real* __restrict__ diag,
-    const ELSPricer::Real* __restrict__ upper,
-    const ELSPricer::Real* __restrict__ rhs,
-    ELSPricer::Real* __restrict__ solution,
+    const float* __restrict__ lower,
+    const float* __restrict__ diag,
+    const float* __restrict__ upper,
+    const float* __restrict__ rhs,
+    float* __restrict__ solution,
     int N,
     int batch_size)
 {
     int bid = blockIdx.x * blockDim.y + threadIdx.y;
     if (bid >= batch_size) return;
 
-    extern __shared__ ELSPricer::Real shared_mem[];
+    extern __shared__ float shared_mem[];
     int tid = threadIdx.x;
     int stride = blockDim.x;
 
     // Shared memory layout per batch item
-    ELSPricer::Real* c_prime = &shared_mem[threadIdx.y * (2 * N - 1)];
-    ELSPricer::Real* d_prime = &shared_mem[threadIdx.y * (2 * N - 1) + N - 1];
+    float* c_prime = &shared_mem[threadIdx.y * (2 * N - 1)];
+    float* d_prime = &shared_mem[threadIdx.y * (2 * N - 1) + N - 1];
 
-    const ELSPricer::Real* rhs_b = &rhs[bid * N];
-    ELSPricer::Real* sol_b = &solution[bid * N];
+    const float* rhs_b = &rhs[bid * N];
+    float* sol_b = &solution[bid * N];
 
     // Forward sweep (parallelized)
     if (tid == 0) {
@@ -108,14 +107,14 @@ __global__ void batchedThomasKernelOptimized(
             // Spin wait (not ideal but simple)
         }
 
-        ELSPricer::Real denom = diag[i] - lower[i - 1] * c_prime[i - 1];
+        float denom = diag[i] - lower[i - 1] * c_prime[i - 1];
         c_prime[i] = upper[i] / denom;
         d_prime[i] = (rhs_b[i] - lower[i - 1] * d_prime[i - 1]) / denom;
     }
 
     if (tid == 0) {
         int i = N - 1;
-        ELSPricer::Real denom = diag[i] - lower[i - 1] * c_prime[i - 1];
+        float denom = diag[i] - lower[i - 1] * c_prime[i - 1];
         d_prime[i] = (rhs_b[i] - lower[i - 1] * d_prime[i - 1]) / denom;
     }
     __syncthreads();
@@ -133,11 +132,11 @@ __global__ void batchedThomasKernelOptimized(
  * Host wrapper for batched Thomas algorithm
  */
 void batchedThomas(
-    const ELSPricer::Real* d_lower,
-    const ELSPricer::Real* d_diag,
-    const ELSPricer::Real* d_upper,
-    const ELSPricer::Real* d_rhs,
-    ELSPricer::Real* d_solution,
+    const float* d_lower,
+    const float* d_diag,
+    const float* d_upper,
+    const float* d_rhs,
+    float* d_solution,
     int N,
     int batch_size)
 {
@@ -146,7 +145,7 @@ void batchedThomas(
     int blocksPerGrid = batch_size;
 
     // Shared memory size: (N-1) for c_prime + N for d_prime
-    size_t sharedMemSize = (2 * N - 1) * sizeof(double);
+    size_t sharedMemSize = (2 * N - 1) * sizeof(float);
 
     batchedThomasKernel<<<blocksPerGrid, 1, sharedMemSize>>>(
         d_lower, d_diag, d_upper, d_rhs, d_solution, N, batch_size
@@ -163,7 +162,7 @@ void batchedThomas(
  * Apply boundary conditions kernel
  */
 __global__ void applyBoundaryConditionsKernel(
-    ELSPricer::Real* V,
+    float* V,
     int N1,
     int N2)
 {
@@ -190,7 +189,7 @@ __global__ void applyBoundaryConditionsKernel(
     }
 }
 
-void applyBoundaryConditions(ELSPricer::Real* d_V, int N1, int N2) {
+void applyBoundaryConditions(float* d_V, int N1, int N2) {
     int threadsPerBlock = 256;
     int blocksPerGrid = (std::max(N1, N2) + threadsPerBlock - 1) / threadsPerBlock;
 
@@ -209,14 +208,14 @@ void applyBoundaryConditions(ELSPricer::Real* d_V, int N1, int N2) {
  * If min(S1/S1_0, S2/S2_0) >= barrier, V = principal + coupon (forced redemption)
  */
 __global__ void applyEarlyRedemptionKernel(
-    ELSPricer::Real* __restrict__ V,
-    const ELSPricer::Real* __restrict__ S1,
-    const ELSPricer::Real* __restrict__ S2,
-    ELSPricer::Real S1_0,
-    ELSPricer::Real S2_0,
-    ELSPricer::Real barrier,
-    ELSPricer::Real principal,
-    ELSPricer::Real coupon,
+    float* __restrict__ V,
+    const float* __restrict__ S1,
+    const float* __restrict__ S2,
+    float S1_0,
+    float S2_0,
+    float barrier,
+    float principal,
+    float coupon,
     int N1,
     int N2)
 {
@@ -224,13 +223,13 @@ __global__ void applyEarlyRedemptionKernel(
     int j = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (i < N1 && j < N2) {
-        ELSPricer::Real s1_pct = S1[i] / S1_0;
-        ELSPricer::Real s2_pct = S2[j] / S2_0;
-        ELSPricer::Real worst = (s1_pct < s2_pct) ? s1_pct : s2_pct;
+        float s1_pct = S1[i] / S1_0;
+        float s2_pct = S2[j] / S2_0;
+        float worst = (s1_pct < s2_pct) ? s1_pct : s2_pct;
 
         if (worst >= barrier) {
             // Early redemption is mandatory, not optional
-            ELSPricer::Real redemption_value = principal + coupon;
+            float redemption_value = principal + coupon;
             int idx = i * N2 + j;
             V[idx] = redemption_value;
         }
@@ -241,8 +240,8 @@ __global__ void applyEarlyRedemptionKernel(
  * Transpose kernel (for S1 direction batched solve)
  */
 __global__ void transposeKernel(
-    const ELSPricer::Real* __restrict__ input,
-    ELSPricer::Real* __restrict__ output,
+    const float* __restrict__ input,
+    float* __restrict__ output,
     int rows,
     int cols)
 {
@@ -254,7 +253,7 @@ __global__ void transposeKernel(
     }
 }
 
-void transpose(const ELSPricer::Real* d_input, ELSPricer::Real* d_output, int rows, int cols) {
+void transpose(const float* d_input, float* d_output, int rows, int cols) {
     dim3 threadsPerBlock(16, 16);
     dim3 blocksPerGrid(
         (cols + threadsPerBlock.x - 1) / threadsPerBlock.x,
@@ -270,14 +269,14 @@ void transpose(const ELSPricer::Real* d_input, ELSPricer::Real* d_output, int ro
 }
 
 void applyEarlyRedemption(
-    ELSPricer::Real* d_V,
-    const ELSPricer::Real* d_S1,
-    const ELSPricer::Real* d_S2,
-    ELSPricer::Real S1_0,
-    ELSPricer::Real S2_0,
-    ELSPricer::Real barrier,
-    ELSPricer::Real principal,
-    ELSPricer::Real coupon,
+    float* d_V,
+    const float* d_S1,
+    const float* d_S2,
+    float S1_0,
+    float S2_0,
+    float barrier,
+    float principal,
+    float coupon,
     int N1,
     int N2)
 {

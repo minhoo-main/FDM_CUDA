@@ -51,10 +51,10 @@ void ADISolverCrossTerm::precomputeCoefficients() {
 
     // S1 direction coefficients (same as before)
     for (int i = 1; i < N1_ - 1; ++i) {
-        Real S1 = grid_.getS1(i);
+        float S1 = grid_.getS1(i);
 
-        Real a1 = 0.5 * sigma1_ * sigma1_ * S1 * S1 / (dS1_ * dS1_);
-        Real b1 = (r_ - q1_) * S1 / (2.0 * dS1_);
+        float a1 = 0.5 * sigma1_ * sigma1_ * S1 * S1 / (dS1_ * dS1_);
+        float b1 = (r_ - q1_) * S1 / (2.0 * dS1_);
 
         alpha1_[i - 1] = -0.5 * dt_ * (a1 - b1);
         beta1_[i] = 1.0 + dt_ * (a1 + 0.5 * r_);
@@ -66,10 +66,10 @@ void ADISolverCrossTerm::precomputeCoefficients() {
 
     // S2 direction coefficients (same as before)
     for (int j = 1; j < N2_ - 1; ++j) {
-        Real S2 = grid_.getS2(j);
+        float S2 = grid_.getS2(j);
 
-        Real a2 = 0.5 * sigma2_ * sigma2_ * S2 * S2 / (dS2_ * dS2_);
-        Real b2 = (r_ - q2_) * S2 / (2.0 * dS2_);
+        float a2 = 0.5 * sigma2_ * sigma2_ * S2 * S2 / (dS2_ * dS2_);
+        float b2 = (r_ - q2_) * S2 / (2.0 * dS2_);
 
         alpha2_[j - 1] = -0.5 * dt_ * (a2 - b2);
         beta2_[j] = 1.0 + dt_ * (a2 + 0.5 * r_);
@@ -81,8 +81,8 @@ void ADISolverCrossTerm::precomputeCoefficients() {
 }
 
 void ADISolverCrossTerm::computeCrossTerm(
-    const std::vector<Real>& V,
-    std::vector<Real>& cross)
+    const std::vector<float>& V,
+    std::vector<float>& cross)
 {
     cross.resize(N1_ * N2_, 0.0);
 
@@ -91,7 +91,7 @@ void ADISolverCrossTerm::computeCrossTerm(
 
     for (int i = 1; i < N1_ - 1; ++i) {
         for (int j = 1; j < N2_ - 1; ++j) {
-            Real mixed_deriv =
+            float mixed_deriv =
                 V[(i+1) * N2_ + (j+1)] - V[(i+1) * N2_ + (j-1)] -
                 V[(i-1) * N2_ + (j+1)] + V[(i-1) * N2_ + (j-1)];
 
@@ -102,10 +102,10 @@ void ADISolverCrossTerm::computeCrossTerm(
 }
 
 void ADISolverCrossTerm::addCrossTermToRHS(
-    const std::vector<Real>& V,
-    std::vector<Real>& RHS)
+    const std::vector<float>& V,
+    std::vector<float>& RHS)
 {
-    std::vector<Real> cross;
+    std::vector<float> cross;
     computeCrossTerm(V, cross);
 
     RHS.resize(N1_ * N2_);
@@ -118,30 +118,30 @@ void ADISolverCrossTerm::addCrossTermToRHS(
 }
 
 void ADISolverCrossTerm::thomasAlgorithm(
-    const std::vector<Real>& lower,
-    const std::vector<Real>& diag,
-    const std::vector<Real>& upper,
-    const std::vector<Real>& rhs,
-    std::vector<Real>& solution)
+    const std::vector<float>& lower,
+    const std::vector<float>& diag,
+    const std::vector<float>& upper,
+    const std::vector<float>& rhs,
+    std::vector<float>& solution)
 {
     int n = diag.size();
     solution.resize(n);
 
-    std::vector<Real> c_prime(n - 1);
-    std::vector<Real> d_prime(n);
+    std::vector<float> c_prime(n - 1);
+    std::vector<float> d_prime(n);
 
     // Forward sweep
     c_prime[0] = upper[0] / diag[0];
     d_prime[0] = rhs[0] / diag[0];
 
     for (int i = 1; i < n - 1; ++i) {
-        Real denom = diag[i] - lower[i - 1] * c_prime[i - 1];
+        float denom = diag[i] - lower[i - 1] * c_prime[i - 1];
         c_prime[i] = upper[i] / denom;
         d_prime[i] = (rhs[i] - lower[i - 1] * d_prime[i - 1]) / denom;
     }
 
     int i = n - 1;
-    Real denom = diag[i] - lower[i - 1] * c_prime[i - 1];
+    float denom = diag[i] - lower[i - 1] * c_prime[i - 1];
     d_prime[i] = (rhs[i] - lower[i - 1] * d_prime[i - 1]) / denom;
 
     // Backward substitution
@@ -152,14 +152,14 @@ void ADISolverCrossTerm::thomasAlgorithm(
 }
 
 void ADISolverCrossTerm::solveS1Direction(
-    const std::vector<Real>& V_in,
-    std::vector<Real>& V_out)
+    const std::vector<float>& V_in,
+    std::vector<float>& V_out)
 {
     V_out.resize(N1_ * N2_);
 
     for (int j = 0; j < N2_; ++j) {
-        std::vector<Real> rhs(N1_);
-        std::vector<Real> sol(N1_);
+        std::vector<float> rhs(N1_);
+        std::vector<float> sol(N1_);
 
         for (int i = 0; i < N1_; ++i) {
             rhs[i] = V_in[i * N2_ + j];
@@ -176,14 +176,14 @@ void ADISolverCrossTerm::solveS1Direction(
 }
 
 void ADISolverCrossTerm::solveS2Direction(
-    const std::vector<Real>& V_in,
-    std::vector<Real>& V_out)
+    const std::vector<float>& V_in,
+    std::vector<float>& V_out)
 {
     V_out.resize(N1_ * N2_);
 
     for (int i = 0; i < N1_; ++i) {
-        std::vector<Real> rhs(N2_);
-        std::vector<Real> sol(N2_);
+        std::vector<float> rhs(N2_);
+        std::vector<float> sol(N2_);
 
         for (int j = 0; j < N2_; ++j) {
             rhs[j] = V_in[i * N2_ + j];
@@ -199,7 +199,7 @@ void ADISolverCrossTerm::solveS2Direction(
     }
 }
 
-void ADISolverCrossTerm::applyBoundaryConditions(std::vector<Real>& V) {
+void ADISolverCrossTerm::applyBoundaryConditions(std::vector<float>& V) {
     // S1 = 0: V = 0
     for (int j = 0; j < N2_; ++j) {
         V[0 * N2_ + j] = 0.0;
@@ -222,7 +222,7 @@ void ADISolverCrossTerm::applyBoundaryConditions(std::vector<Real>& V) {
 }
 
 void ADISolverCrossTerm::applyEarlyRedemption(
-    std::vector<Real>& V,
+    std::vector<float>& V,
     int obsIdx,
     const ELSProduct& product)
 {
@@ -240,7 +240,7 @@ void ADISolverCrossTerm::applyEarlyRedemption(
         }
     }
 
-    Real percentage = 100.0 * redeemed_count / (N1_ * N2_);
+    float percentage = 100.0 * redeemed_count / (N1_ * N2_);
     std::cout << "  [DEBUG] Observation " << obsIdx
               << " (t=" << product.getObservationDates()[obsIdx] << "): "
               << redeemed_count << " / " << (N1_ * N2_)
@@ -248,11 +248,11 @@ void ADISolverCrossTerm::applyEarlyRedemption(
               << percentage << "%)" << std::endl;
 }
 
-std::vector<Real> ADISolverCrossTerm::solve(const std::vector<Real>& V_T) {
-    std::vector<Real> V = V_T;
-    std::vector<Real> RHS1(N1_ * N2_);
-    std::vector<Real> V_half(N1_ * N2_);
-    std::vector<Real> RHS2(N1_ * N2_);
+std::vector<float> ADISolverCrossTerm::solve(const std::vector<float>& V_T) {
+    std::vector<float> V = V_T;
+    std::vector<float> RHS1(N1_ * N2_);
+    std::vector<float> V_half(N1_ * N2_);
+    std::vector<float> RHS2(N1_ * N2_);
 
     // Time stepping (backward in time: T -> 0)
     for (int n = Nt_ - 1; n >= 0; --n) {
@@ -275,14 +275,14 @@ std::vector<Real> ADISolverCrossTerm::solve(const std::vector<Real>& V_T) {
     return V;
 }
 
-std::vector<Real> ADISolverCrossTerm::solveWithEarlyRedemption(
-    const std::vector<Real>& V_T,
+std::vector<float> ADISolverCrossTerm::solveWithEarlyRedemption(
+    const std::vector<float>& V_T,
     const ELSProduct& product)
 {
-    std::vector<Real> V = V_T;
-    std::vector<Real> RHS1(N1_ * N2_);
-    std::vector<Real> V_half(N1_ * N2_);
-    std::vector<Real> RHS2(N1_ * N2_);
+    std::vector<float> V = V_T;
+    std::vector<float> RHS1(N1_ * N2_);
+    std::vector<float> V_half(N1_ * N2_);
+    std::vector<float> RHS2(N1_ * N2_);
 
     const auto& obsDates = product.getObservationDates();
     const auto& timeGrid = grid_.getTime();
@@ -290,11 +290,11 @@ std::vector<Real> ADISolverCrossTerm::solveWithEarlyRedemption(
     // Convert observation dates to time indices
     std::vector<int> obsIndices;
     std::cout << "[DEBUG] Matching observation dates to timesteps:\n";
-    for (Real obsDate : obsDates) {
+    for (float obsDate : obsDates) {
         int idx = 0;
-        Real minDiff = std::abs(timeGrid[0] - obsDate);
+        float minDiff = std::abs(timeGrid[0] - obsDate);
         for (int n = 1; n <= Nt_; ++n) {
-            Real diff = std::abs(timeGrid[n] - obsDate);
+            float diff = std::abs(timeGrid[n] - obsDate);
             if (diff < minDiff) {
                 minDiff = diff;
                 idx = n;
@@ -350,7 +350,7 @@ PricingResultCrossTerm priceELSCrossTerm(
     }
 
     // Create terminal payoff
-    std::vector<Real> V_T(N1 * N2);
+    std::vector<float> V_T(N1 * N2);
     const auto& S1 = grid->getS1();
     const auto& S2 = grid->getS2();
 
@@ -369,10 +369,10 @@ PricingResultCrossTerm priceELSCrossTerm(
     // Extract price at (S1_0, S2_0)
     int i0 = grid->findS1Index(product.getS1_0());
     int j0 = grid->findS2Index(product.getS2_0());
-    Real price = V_0[i0 * N2 + j0];
+    float price = V_0[i0 * N2 + j0];
 
     auto end = std::chrono::high_resolution_clock::now();
-    Real computeTime = std::chrono::duration<Real>(end - start).count();
+    float computeTime = std::chrono::duration<float>(end - start).count();
 
     if (verbose) {
         std::cout << "\n--- Pricing Result (with Cross-Term) ---\n";

@@ -1,6 +1,5 @@
 #ifndef ADISOLVER_CROSSTERM_H
 #define ADISOLVER_CROSSTERM_H
-#include "precision.h"
 
 #include "Grid2D.h"
 #include "ELSProduct.h"
@@ -26,28 +25,28 @@ class ADISolverCrossTerm {
 public:
     ADISolverCrossTerm(const Grid2D& grid, const ELSProduct& product);
 
-    std::vector<Real> solve(const std::vector<Real>& V_T);
-    std::vector<Real> solveWithEarlyRedemption(
-        const std::vector<Real>& V_T,
+    std::vector<float> solve(const std::vector<float>& V_T);
+    std::vector<float> solveWithEarlyRedemption(
+        const std::vector<float>& V_T,
         const ELSProduct& product);
 
 private:
     void precomputeCoefficients();
-    void computeCrossTerm(const std::vector<Real>& V, std::vector<Real>& cross);
-    void addCrossTermToRHS(const std::vector<Real>& V, std::vector<Real>& RHS);
+    void computeCrossTerm(const std::vector<float>& V, std::vector<float>& cross);
+    void addCrossTermToRHS(const std::vector<float>& V, std::vector<float>& RHS);
 
     void thomasAlgorithm(
-        const std::vector<Real>& lower,
-        const std::vector<Real>& diag,
-        const std::vector<Real>& upper,
-        const std::vector<Real>& rhs,
-        std::vector<Real>& solution);
+        const std::vector<float>& lower,
+        const std::vector<float>& diag,
+        const std::vector<float>& upper,
+        const std::vector<float>& rhs,
+        std::vector<float>& solution);
 
-    void solveS1Direction(const std::vector<Real>& V_in, std::vector<Real>& V_out);
-    void solveS2Direction(const std::vector<Real>& V_in, std::vector<Real>& V_out);
-    void applyBoundaryConditions(std::vector<Real>& V);
+    void solveS1Direction(const std::vector<float>& V_in, std::vector<float>& V_out);
+    void solveS2Direction(const std::vector<float>& V_in, std::vector<float>& V_out);
+    void applyBoundaryConditions(std::vector<float>& V);
     void applyEarlyRedemption(
-        std::vector<Real>& V,
+        std::vector<float>& V,
         int obsIdx,
         const ELSProduct& product);
 
@@ -56,21 +55,21 @@ private:
     const ELSProduct& product_;
 
     int N1_, N2_, Nt_;
-    Real dS1_, dS2_, dt_;
-    Real sigma1_, sigma2_, rho_, r_, q1_, q2_;
+    float dS1_, dS2_, dt_;
+    float sigma1_, sigma2_, rho_, r_, q1_, q2_;
 
     // Tridiagonal coefficients
-    std::vector<Real> alpha1_, beta1_, gamma1_;
-    std::vector<Real> alpha2_, beta2_, gamma2_;
+    std::vector<float> alpha1_, beta1_, gamma1_;
+    std::vector<float> alpha2_, beta2_, gamma2_;
 
     // Cross-term coefficients (precomputed)
-    std::vector<Real> cross_coef_;  // ρ σ1 σ2 S1[i] S2[j] / (4 dS1 dS2)
+    std::vector<float> cross_coef_;  // ρ σ1 σ2 S1[i] S2[j] / (4 dS1 dS2)
 };
 
 struct PricingResultCrossTerm {
-    Real price;
-    std::vector<Real> grid;
-    Real computeTime;
+    float price;
+    std::vector<float> grid;
+    float computeTime;
 };
 
 PricingResultCrossTerm priceELSCrossTerm(

@@ -1,4 +1,3 @@
-#include "precision.h"
 #pragma once
 
 #include <vector>
@@ -18,80 +17,80 @@ class ELSProduct {
 public:
     // Constructor
     ELSProduct(
-        Real principal = 100.0,
-        Real maturity = 3.0,
-        const std::vector<Real>& observationDates = {},
-        const std::vector<Real>& redemptionBarriers = {},
-        const std::vector<Real>& coupons = {},
-        Real kiBarrier = 0.50,
-        Real S1_0 = 100.0,
-        Real S2_0 = 100.0,
-        Real sigma1 = 0.25,
-        Real sigma2 = 0.30,
-        Real rho = 0.50,
-        Real r = 0.03,
-        Real q1 = 0.02,
-        Real q2 = 0.015,
+        float principal = 100.0,
+        float maturity = 3.0,
+        const std::vector<float>& observationDates = {},
+        const std::vector<float>& redemptionBarriers = {},
+        const std::vector<float>& coupons = {},
+        float kiBarrier = 0.50,
+        float S1_0 = 100.0,
+        float S2_0 = 100.0,
+        float sigma1 = 0.25,
+        float sigma2 = 0.30,
+        float rho = 0.50,
+        float r = 0.03,
+        float q1 = 0.02,
+        float q2 = 0.015,
         bool worstOf = true
     );
 
     // Accessors
-    inline Real getPrincipal() const { return principal_; }
-    inline Real getMaturity() const { return maturity_; }
-    inline Real getS1_0() const { return S1_0_; }
-    inline Real getS2_0() const { return S2_0_; }
-    inline Real getSigma1() const { return sigma1_; }
-    inline Real getSigma2() const { return sigma2_; }
-    inline Real getRho() const { return rho_; }
-    inline Real getR() const { return r_; }
-    inline Real getQ1() const { return q1_; }
-    inline Real getQ2() const { return q2_; }
-    inline Real getKIBarrier() const { return kiBarrier_; }
+    inline float getPrincipal() const { return principal_; }
+    inline float getMaturity() const { return maturity_; }
+    inline float getS1_0() const { return S1_0_; }
+    inline float getS2_0() const { return S2_0_; }
+    inline float getSigma1() const { return sigma1_; }
+    inline float getSigma2() const { return sigma2_; }
+    inline float getRho() const { return rho_; }
+    inline float getR() const { return r_; }
+    inline float getQ1() const { return q1_; }
+    inline float getQ2() const { return q2_; }
+    inline float getKIBarrier() const { return kiBarrier_; }
     inline bool isWorstOf() const { return worstOf_; }
 
-    inline const std::vector<Real>& getObservationDates() const { return observationDates_; }
-    inline const std::vector<Real>& getRedemptionBarriers() const { return redemptionBarriers_; }
-    inline const std::vector<Real>& getCoupons() const { return coupons_; }
+    inline const std::vector<float>& getObservationDates() const { return observationDates_; }
+    inline const std::vector<float>& getRedemptionBarriers() const { return redemptionBarriers_; }
+    inline const std::vector<float>& getCoupons() const { return coupons_; }
 
     // Payoff calculation
-    Real payoffAtMaturity(Real S1, Real S2, bool kiOccurred) const;
+    float payoffAtMaturity(float S1, float S2, bool kiOccurred) const;
 
     // Early redemption check
     struct RedemptionResult {
         bool isRedeemed;
-        Real payoff;
+        float payoff;
     };
-    RedemptionResult checkEarlyRedemption(Real S1, Real S2, int obsIdx) const;
+    RedemptionResult checkEarlyRedemption(float S1, float S2, int obsIdx) const;
 
     // Knock-in check
-    bool checkKnockIn(Real S1, Real S2) const;
+    bool checkKnockIn(float S1, float S2) const;
 
     // Performance (Worst-of or Best-of)
-    Real performance(Real S1, Real S2) const;
+    float performance(float S1, float S2) const;
 
     // Print product info
     void printInfo() const;
 
 private:
     // Product parameters
-    Real principal_;
-    Real maturity_;
+    float principal_;
+    float maturity_;
 
-    std::vector<Real> observationDates_;
-    std::vector<Real> redemptionBarriers_;
-    std::vector<Real> coupons_;
+    std::vector<float> observationDates_;
+    std::vector<float> redemptionBarriers_;
+    std::vector<float> coupons_;
 
-    Real kiBarrier_;
+    float kiBarrier_;
 
     // Underlying assets
-    Real S1_0_, S2_0_;
-    Real sigma1_, sigma2_;
-    Real rho_;
+    float S1_0_, S2_0_;
+    float sigma1_, sigma2_;
+    float rho_;
 
     // Market parameters
-    Real r_;   // risk-free rate
-    Real q1_;  // dividend yield 1
-    Real q2_;  // dividend yield 2
+    float r_;   // risk-free rate
+    float q1_;  // dividend yield 1
+    float q2_;  // dividend yield 2
 
     bool worstOf_;  // Worst-of (true) or Best-of (false)
 

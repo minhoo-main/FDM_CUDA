@@ -51,9 +51,9 @@ int main() {
         auto result_cross = priceELSCrossTerm(product, N, N, Nt, false);
 
         // Calculate differences
-        double price_diff = result_cross.price - result_simple.price;
-        double price_diff_pct = 100.0 * std::abs(price_diff) / result_simple.price;
-        double time_overhead = 100.0 * (result_cross.computeTime - result_simple.computeTime)
+        float price_diff = result_cross.price - result_simple.price;
+        float price_diff_pct = 100.0 * std::abs(price_diff) / result_simple.price;
+        float time_overhead = 100.0 * (result_cross.computeTime - result_simple.computeTime)
                                / result_simple.computeTime;
 
         std::cout << std::setw(15) << std::fixed << std::setprecision(6) << result_simple.price
@@ -101,9 +101,9 @@ int main() {
     std::cout << std::string(73, '-') << "\n\n";
 
     // Analysis
-    double price_diff = cross.price - simple.price;
-    double price_diff_pct = 100.0 * std::abs(price_diff) / simple.price;
-    double time_overhead = 100.0 * (cross.computeTime - simple.computeTime) / simple.computeTime;
+    float price_diff = cross.price - simple.price;
+    float price_diff_pct = 100.0 * std::abs(price_diff) / simple.price;
+    float time_overhead = 100.0 * (cross.computeTime - simple.computeTime) / simple.computeTime;
 
     std::cout << "Analysis:\n";
     std::cout << "  Price Difference: " << std::setprecision(6) << price_diff

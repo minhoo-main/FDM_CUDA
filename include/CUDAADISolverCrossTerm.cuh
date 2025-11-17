@@ -1,4 +1,3 @@
-#include "precision.h"
 #ifndef CUDA_ADISOLVER_CROSSTERM_CUH
 #define CUDA_ADISOLVER_CROSSTERM_CUH
 
@@ -25,9 +24,9 @@ public:
     CUDAADISolverCrossTerm(const Grid2D& grid, const ELSProduct& product);
     ~CUDAADISolverCrossTerm();
 
-    std::vector<ELSPricer::Real> solve(const std::vector<ELSPricer::Real>& V_T);
-    std::vector<ELSPricer::Real> solveWithEarlyRedemption(
-        const std::vector<ELSPricer::Real>& V_T,
+    std::vector<float> solve(const std::vector<float>& V_T);
+    std::vector<float> solveWithEarlyRedemption(
+        const std::vector<float>& V_T,
         const ELSProduct& product);
 
 private:
@@ -35,51 +34,51 @@ private:
     void cleanup();
     void precomputeCoefficients();
 
-    void copyToDevice(const std::vector<ELSPricer::Real>& V_host);
-    void copyFromDevice(std::vector<ELSPricer::Real>& V_host);
+    void copyToDevice(const std::vector<float>& V_host);
+    void copyFromDevice(std::vector<float>& V_host);
 
-    void computeCrossTermGPU(const double* d_V_in, double* d_cross_out);
-    void addCrossTermToRHSGPU(const double* d_V, double* d_RHS);
-    void solveS1DirectionGPU(const double* d_RHS, double* d_V_out);
-    void solveS2DirectionGPU(const double* d_RHS, double* d_V_out);
-    void applyBoundaryConditionsGPU(double* d_V);
+    void computeCrossTermGPU(const float* d_V_in, float* d_cross_out);
+    void addCrossTermToRHSGPU(const float* d_V, float* d_RHS);
+    void solveS1DirectionGPU(const float* d_RHS, float* d_V_out);
+    void solveS2DirectionGPU(const float* d_RHS, float* d_V_out);
+    void applyBoundaryConditionsGPU(float* d_V);
 
 private:
     const Grid2D& grid_;
     const ELSProduct& product_;
 
     int N1_, N2_, Nt_;
-    ELSPricer::Real dS1_, dS2_, dt_;
-    ELSPricer::Real sigma1_, sigma2_, rho_, r_, q1_, q2_;
+    float dS1_, dS2_, dt_;
+    float sigma1_, sigma2_, rho_, r_, q1_, q2_;
 
     // Host arrays
-    std::vector<ELSPricer::Real> alpha1_, beta1_, gamma1_;
-    std::vector<ELSPricer::Real> alpha2_, beta2_, gamma2_;
-    std::vector<ELSPricer::Real> cross_coef_;
+    std::vector<float> alpha1_, beta1_, gamma1_;
+    std::vector<float> alpha2_, beta2_, gamma2_;
+    std::vector<float> cross_coef_;
 
     // Device pointers
-    double* d_V_;
-    double* d_V_half_;
-    double* d_V_transposed_;
-    double* d_RHS1_;
-    double* d_RHS2_;
-    double* d_cross_;
-    double* d_S1_;
-    double* d_S2_;
-    double* d_cross_coef_;
+    float* d_V_;
+    float* d_V_half_;
+    float* d_V_transposed_;
+    float* d_RHS1_;
+    float* d_RHS2_;
+    float* d_cross_;
+    float* d_S1_;
+    float* d_S2_;
+    float* d_cross_coef_;
 
-    double* d_alpha1_;
-    double* d_beta1_;
-    double* d_gamma1_;
-    double* d_alpha2_;
-    double* d_beta2_;
-    double* d_gamma2_;
+    float* d_alpha1_;
+    float* d_beta1_;
+    float* d_gamma1_;
+    float* d_alpha2_;
+    float* d_beta2_;
+    float* d_gamma2_;
 };
 
 struct PricingResultCrossTermGPU {
-    ELSPricer::Real price;
-    std::vector<ELSPricer::Real> grid;
-    ELSPricer::Real computeTime;
+    float price;
+    std::vector<float> grid;
+    float computeTime;
 };
 
 PricingResultCrossTermGPU priceELSCrossTermGPU(

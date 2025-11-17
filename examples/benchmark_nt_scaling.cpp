@@ -42,7 +42,7 @@ int main() {
         std::cout << std::setw(14) << std::setprecision(4) << gpu_result.computeTime << std::flush;
 
         // Speedup
-        Real speedup = cpu_result.computeTime / gpu_result.computeTime;
+        float speedup = cpu_result.computeTime / gpu_result.computeTime;
         std::cout << std::setw(12) << std::setprecision(2) << speedup << "×" << std::flush;
 
         // Prices

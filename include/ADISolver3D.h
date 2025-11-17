@@ -1,4 +1,3 @@
-#include "precision.h"
 #pragma once
 
 #include "Grid3D.h"
@@ -18,15 +17,15 @@ namespace ELSPricer {
 class ADISolver3D {
 public:
     struct Parameters {
-        Real r;      // Risk-free rate
-        Real q1, q2, q3;  // Dividend yields
-        Real sigma1, sigma2, sigma3;  // Volatilities
-        Real rho12, rho13, rho23;  // Correlations
+        float r;      // Risk-free rate
+        float q1, q2, q3;  // Dividend yields
+        float sigma1, sigma2, sigma3;  // Volatilities
+        float rho12, rho13, rho23;  // Correlations
 
         // Correlation matrix must be positive definite
         bool isValid() const {
             // Check correlation matrix eigenvalues
-            Real det = 1 + 2*rho12*rho13*rho23
+            float det = 1 + 2*rho12*rho13*rho23
                         - rho12*rho12 - rho13*rho13 - rho23*rho23;
             return det > 0;
         }
@@ -54,11 +53,11 @@ public:
      * 2. S2 implicit, S1,S3 explicit
      * 3. S3 implicit, S1,S2 explicit
      */
-    std::vector<Real> solve(const std::vector<Real>& V_T) {
+    std::vector<float> solve(const std::vector<float>& V_T) {
         size_t total_size = N1_ * N2_ * N3_;
-        std::vector<Real> V_current = V_T;
-        std::vector<Real> V_temp1(total_size);
-        std::vector<Real> V_temp2(total_size);
+        std::vector<float> V_current = V_T;
+        std::vector<float> V_temp1(total_size);
+        std::vector<float> V_temp2(total_size);
 
         // Time stepping (backward)
         for (int n = Nt_ - 1; n >= 0; --n) {
@@ -88,8 +87,8 @@ public:
     void printMemoryRequirements() const {
         size_t grid_points = N1_ * N2_ * N3_;
         size_t vectors_needed = 4;  // V_current, V_temp1, V_temp2, coefficients
-        size_t memory_bytes = grid_points * vectors_needed * sizeof(double);
-        Real memory_gb = memory_bytes / (1024.0 * 1024.0 * 1024.0);
+        size_t memory_bytes = grid_points * vectors_needed * sizeof(float);
+        float memory_gb = memory_bytes / (1024.0 * 1024.0 * 1024.0);
 
         std::cout << "\n=== 3D ADI Solver Memory Requirements ===" << std::endl;
         std::cout << "Grid points: " << grid_points << std::endl;
@@ -110,19 +109,19 @@ private:
     int N1_, N2_, N3_, Nt_;
 
     // Tridiagonal coefficients for each direction
-    std::vector<Real> alpha1_, beta1_, gamma1_;
-    std::vector<Real> alpha2_, beta2_, gamma2_;
-    std::vector<Real> alpha3_, beta3_, gamma3_;
+    std::vector<float> alpha1_, beta1_, gamma1_;
+    std::vector<float> alpha2_, beta2_, gamma2_;
+    std::vector<float> alpha3_, beta3_, gamma3_;
 
     void precomputeCoefficients() {
         // Simplified - actual implementation would compute
         // proper finite difference coefficients including
         // cross-derivative terms from correlations
 
-        Real dt = grid_.getDt();
-        Real dS1 = grid_.getDS1();
-        Real dS2 = grid_.getDS2();
-        Real dS3 = grid_.getDS3();
+        float dt = grid_.getDt();
+        float dS1 = grid_.getDS1();
+        float dS2 = grid_.getDS2();
+        float dS3 = grid_.getDS3();
 
         // This is a simplified version
         // Full implementation needs proper discretization
@@ -140,8 +139,8 @@ private:
         gamma3_.resize(N3_);
     }
 
-    void solveS1Direction(const std::vector<Real>& V_in,
-                          std::vector<Real>& V_out) {
+    void solveS1Direction(const std::vector<float>& V_in,
+                          std::vector<float>& V_out) {
         // For each (j,k) pair, solve tridiagonal system in i direction
         #pragma omp parallel for collapse(2)
         for (int j = 0; j < N2_; ++j) {
@@ -152,17 +151,17 @@ private:
         }
     }
 
-    void solveS2Direction(const std::vector<Real>& V_in,
-                          std::vector<Real>& V_out) {
+    void solveS2Direction(const std::vector<float>& V_in,
+                          std::vector<float>& V_out) {
         // Similar to S1, but in j direction
     }
 
-    void solveS3Direction(const std::vector<Real>& V_in,
-                          std::vector<Real>& V_out) {
+    void solveS3Direction(const std::vector<float>& V_in,
+                          std::vector<float>& V_out) {
         // Similar to S1, but in k direction
     }
 
-    void applyBoundaryConditions(std::vector<Real>& V) {
+    void applyBoundaryConditions(std::vector<float>& V) {
         // Apply appropriate boundary conditions
         // at S1=0, S1=max, S2=0, S2=max, S3=0, S3=max
     }

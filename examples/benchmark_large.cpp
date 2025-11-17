@@ -54,7 +54,7 @@ int main() {
             auto result = priceELS(product, size.N1, size.N2, size.Nt, false);
 
             long long totalPoints = (long long)size.N1 * size.N2 * size.Nt;
-            Real pointsPerSec = totalPoints / result.computeTime;
+            float pointsPerSec = totalPoints / result.computeTime;
 
             std::cout << std::setw(15) << std::fixed << std::setprecision(4) << result.price
                       << std::setw(15) << std::setprecision(3) << result.computeTime

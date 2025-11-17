@@ -12,11 +12,11 @@ using namespace ELSPricer;
 struct BenchmarkResult {
     int N1, N2, Nt;
     std::string gridName;
-    Real cpuPrice;
-    Real cpuTime;
-    Real gpuPrice;
-    Real gpuTime;
-    Real speedup;
+    float cpuPrice;
+    float cpuTime;
+    float gpuPrice;
+    float gpuTime;
+    float speedup;
     long long totalPoints;
 };
 
@@ -75,8 +75,8 @@ void printDetailedAnalysis(const std::vector<BenchmarkResult>& results) {
     // GPU wins count
     int gpuWins = 0;
     int cpuWins = 0;
-    Real totalSpeedup = 0.0;
-    Real maxSpeedup = 0.0;
+    float totalSpeedup = 0.0;
+    float maxSpeedup = 0.0;
     std::string maxSpeedupGrid;
 
     for (const auto& r : results) {
@@ -102,8 +102,8 @@ void printDetailedAnalysis(const std::vector<BenchmarkResult>& results) {
 
     // Price consistency
     std::cout << "💰 ELS Price Convergence:\n";
-    Real minPrice = results[0].cpuPrice;
-    Real maxPrice = results[0].cpuPrice;
+    float minPrice = results[0].cpuPrice;
+    float maxPrice = results[0].cpuPrice;
     for (const auto& r : results) {
         minPrice = std::min(minPrice, std::min(r.cpuPrice, r.gpuPrice));
         maxPrice = std::max(maxPrice, std::max(r.cpuPrice, r.gpuPrice));
@@ -249,7 +249,7 @@ int main() {
     std::cout << std::string(70, '-') << "\n";
 
     // Known Python benchmarks
-    struct { std::string grid; Real pythonTime; } pythonData[] = {
+    struct { std::string grid; float pythonTime; } pythonData[] = {
         {"100×100×200", 6.99},
         {"200×200×1000", 78.26}
     };
@@ -257,7 +257,7 @@ int main() {
     for (const auto& py : pythonData) {
         for (const auto& cpp : results) {
             if (cpp.gridName == py.grid) {
-                Real totalGain = py.pythonTime / cpp.gpuTime;
+                float totalGain = py.pythonTime / cpp.gpuTime;
                 std::cout << std::setw(18) << cpp.gridName
                           << std::setw(14) << std::fixed << std::setprecision(2) << py.pythonTime << "s"
                           << std::setw(12) << cpp.cpuTime << "s"

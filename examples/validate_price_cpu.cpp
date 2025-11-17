@@ -12,31 +12,31 @@ int main() {
     std::cout << "═══════════════════════════════════════════════════════════════════\n\n";
 
     // 당신의 파라미터
-    Real principal = 100.0;
-    Real maturity = 3.0;  // 3년
+    float principal = 100.0;
+    float maturity = 3.0;  // 3년
 
     // Observation dates: 6개월 간격
-    std::vector<Real> observationDates = {0.5, 1.0, 1.5, 2.0, 2.5, 3.0};
+    std::vector<float> observationDates = {0.5, 1.0, 1.5, 2.0, 2.5, 3.0};
 
     // Redemption barriers: 85%, 85%, 80%, 80%, 75%, 70%
-    std::vector<Real> redemptionBarriers = {0.85, 0.85, 0.80, 0.80, 0.75, 0.70};
+    std::vector<float> redemptionBarriers = {0.85, 0.85, 0.80, 0.80, 0.75, 0.70};
 
     // Coupons: 6개월마다 지급되는 쿠폰 (연 8% 가정)
     // 0.5년: 4%, 1.0년: 8%, 1.5년: 12%, 2.0년: 16%, 2.5년: 20%, 3.0년: 24%
-    std::vector<Real> coupons = {4.0, 8.0, 12.0, 16.0, 20.0, 24.0};
+    std::vector<float> coupons = {4.0, 8.0, 12.0, 16.0, 20.0, 24.0};
 
-    Real kiBarrier = 0.45;  // 낙인 배리어 45%
+    float kiBarrier = 0.45;  // 낙인 배리어 45%
 
-    Real S1_0 = 100.0;  // 기초자산 1 초기가
-    Real S2_0 = 100.0;  // 기초자산 2 초기가
+    float S1_0 = 100.0;  // 기초자산 1 초기가
+    float S2_0 = 100.0;  // 기초자산 2 초기가
 
-    Real sigma1 = 0.152;  // 15.2% 변동성
-    Real sigma2 = 0.404;  // 40.4% 변동성
-    Real rho = 0.61;      // 상관계수 0.61
+    float sigma1 = 0.152;  // 15.2% 변동성
+    float sigma2 = 0.404;  // 40.4% 변동성
+    float rho = 0.61;      // 상관계수 0.61
 
-    Real r = 0.03477;     // 무위험 이자율 3.477%
-    Real q1 = 0.015;      // 배당률 1.5%
-    Real q2 = 0.02;       // 배당률 2%
+    float r = 0.03477;     // 무위험 이자율 3.477%
+    float q1 = 0.015;      // 배당률 1.5%
+    float q2 = 0.02;       // 배당률 2%
 
     // ELS 상품 생성
     ELSProduct product(

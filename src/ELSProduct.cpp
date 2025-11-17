@@ -7,14 +7,14 @@
 namespace ELSPricer {
 
 ELSProduct::ELSProduct(
-    Real principal, Real maturity,
-    const std::vector<Real>& observationDates,
-    const std::vector<Real>& redemptionBarriers,
-    const std::vector<Real>& coupons,
-    Real kiBarrier,
-    Real S1_0, Real S2_0,
-    Real sigma1, Real sigma2, Real rho,
-    Real r, Real q1, Real q2,
+    float principal, float maturity,
+    const std::vector<float>& observationDates,
+    const std::vector<float>& redemptionBarriers,
+    const std::vector<float>& coupons,
+    float kiBarrier,
+    float S1_0, float S2_0,
+    float sigma1, float sigma2, float rho,
+    float r, float q1, float q2,
     bool worstOf)
     : principal_(principal), maturity_(maturity),
       observationDates_(observationDates),
@@ -46,16 +46,16 @@ void ELSProduct::initializeDefaults() {
 
     // Set default coupons if not provided (8% annual)
     if (coupons_.empty()) {
-        Real annualCoupon = 8.0;
-        for (Real t : observationDates_) {
+        float annualCoupon = 8.0;
+        for (float t : observationDates_) {
             coupons_.push_back(annualCoupon * t);
         }
     }
 }
 
-Real ELSProduct::performance(Real S1, Real S2) const {
-    Real perf1 = S1 / S1_0_;
-    Real perf2 = S2 / S2_0_;
+float ELSProduct::performance(float S1, float S2) const {
+    float perf1 = S1 / S1_0_;
+    float perf2 = S2 / S2_0_;
 
     if (worstOf_) {
         return std::min(perf1, perf2);
@@ -64,12 +64,12 @@ Real ELSProduct::performance(Real S1, Real S2) const {
     }
 }
 
-Real ELSProduct::payoffAtMaturity(Real S1, Real S2, bool kiOccurred) const {
-    Real perf = performance(S1, S2);
+float ELSProduct::payoffAtMaturity(float S1, float S2, bool kiOccurred) const {
+    float perf = performance(S1, S2);
 
     if (kiOccurred) {
         // KI occurred: min(principal, principal * performance)
-        return principal_ * std::min(Real(1.0), perf);
+        return principal_ * std::min(float(1.0), perf);
     } else {
         // No KI: principal + final coupon
         return principal_ + coupons_.back();
@@ -77,7 +77,7 @@ Real ELSProduct::payoffAtMaturity(Real S1, Real S2, bool kiOccurred) const {
 }
 
 ELSProduct::RedemptionResult ELSProduct::checkEarlyRedemption(
-    Real S1, Real S2, int obsIdx) const
+    float S1, float S2, int obsIdx) const
 {
     RedemptionResult result{false, 0.0};
 
@@ -85,8 +85,8 @@ ELSProduct::RedemptionResult ELSProduct::checkEarlyRedemption(
         return result;
     }
 
-    Real perf = performance(S1, S2);
-    Real barrier = redemptionBarriers_[obsIdx];
+    float perf = performance(S1, S2);
+    float barrier = redemptionBarriers_[obsIdx];
 
     if (perf >= barrier) {
         result.isRedeemed = true;
@@ -96,8 +96,8 @@ ELSProduct::RedemptionResult ELSProduct::checkEarlyRedemption(
     return result;
 }
 
-bool ELSProduct::checkKnockIn(Real S1, Real S2) const {
-    Real perf = performance(S1, S2);
+bool ELSProduct::checkKnockIn(float S1, float S2) const {
+    float perf = performance(S1, S2);
     return perf < kiBarrier_;
 }
 

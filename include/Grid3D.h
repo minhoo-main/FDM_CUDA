@@ -1,4 +1,3 @@
-#include "precision.h"
 #pragma once
 
 #include <vector>
@@ -13,7 +12,7 @@ namespace ELSPricer {
  */
 class Grid3D {
 public:
-    Grid3D(Real S1_max, Real S2_max, Real S3_max, Real T,
+    Grid3D(float S1_max, float S2_max, float S3_max, float T,
            int N1, int N2, int N3, int Nt)
         : S1_max_(S1_max), S2_max_(S2_max), S3_max_(S3_max), T_(T),
           N1_(N1), N2_(N2), N3_(N3), Nt_(Nt)
@@ -39,7 +38,7 @@ public:
     // Memory estimate
     size_t getMemoryUsageGB() const {
         size_t total_points = (size_t)N1_ * N2_ * N3_ * Nt_;
-        return total_points * sizeof(double) / (1024 * 1024 * 1024);
+        return total_points * sizeof(float) / (1024 * 1024 * 1024);
     }
 
     void printInfo() const {
@@ -64,15 +63,15 @@ public:
     int getN3() const { return N3_; }
     int getNt() const { return Nt_; }
 
-    Real getDS1() const { return dS1_; }
-    Real getDS2() const { return dS2_; }
-    Real getDS3() const { return dS3_; }
-    Real getDt() const { return dt_; }
+    float getDS1() const { return dS1_; }
+    float getDS2() const { return dS2_; }
+    float getDS3() const { return dS3_; }
+    float getDt() const { return dt_; }
 
-    const std::vector<Real>& getS1() const { return S1_; }
-    const std::vector<Real>& getS2() const { return S2_; }
-    const std::vector<Real>& getS3() const { return S3_; }
-    const std::vector<Real>& getTime() const { return time_; }
+    const std::vector<float>& getS1() const { return S1_; }
+    const std::vector<float>& getS2() const { return S2_; }
+    const std::vector<float>& getS3() const { return S3_; }
+    const std::vector<float>& getTime() const { return time_; }
 
     // Index helpers
     inline size_t index(int i, int j, int k) const {
@@ -80,11 +79,11 @@ public:
     }
 
 private:
-    Real S1_max_, S2_max_, S3_max_, T_;
+    float S1_max_, S2_max_, S3_max_, T_;
     int N1_, N2_, N3_, Nt_;
-    Real dS1_, dS2_, dS3_, dt_;
+    float dS1_, dS2_, dS3_, dt_;
 
-    std::vector<Real> S1_, S2_, S3_, time_;
+    std::vector<float> S1_, S2_, S3_, time_;
 };
 
 } // namespace ELSPricer

@@ -66,11 +66,11 @@ int main() {
         auto gpu_cross = CUDA::priceELSCrossTermGPU(product, N, N, Nt, false);
 
         // Calculate differences
-        Real price_diff = std::abs(cpu_cross.price - cpu_simple.price);
-        Real price_diff_pct = 100.0 * price_diff / cpu_simple.price;
+        float price_diff = std::abs(cpu_cross.price - cpu_simple.price);
+        float price_diff_pct = 100.0 * price_diff / cpu_simple.price;
 
-        Real cpu_overhead = 100.0 * (cpu_cross.computeTime - cpu_simple.computeTime) / cpu_simple.computeTime;
-        Real gpu_overhead = 100.0 * (gpu_cross.computeTime - gpu_simple.computeTime) / gpu_simple.computeTime;
+        float cpu_overhead = 100.0 * (cpu_cross.computeTime - cpu_simple.computeTime) / cpu_simple.computeTime;
+        float gpu_overhead = 100.0 * (gpu_cross.computeTime - gpu_simple.computeTime) / gpu_simple.computeTime;
 
         // Display results
         std::cout << std::setw(15) << std::fixed << std::setprecision(4) << cpu_simple.computeTime << "s"
@@ -123,14 +123,14 @@ int main() {
     std::cout << std::string(55, '-') << "\n\n";
 
     // Analysis
-    Real avg_price = (cpu_simple.price + cpu_cross.price + gpu_simple.price + gpu_cross.price) / 4.0;
-    Real max_diff = std::max({
+    float avg_price = (cpu_simple.price + cpu_cross.price + gpu_simple.price + gpu_cross.price) / 4.0;
+    float max_diff = std::max({
         std::abs(cpu_simple.price - avg_price),
         std::abs(cpu_cross.price - avg_price),
         std::abs(gpu_simple.price - avg_price),
         std::abs(gpu_cross.price - avg_price)
     });
-    Real max_diff_pct = 100.0 * max_diff / avg_price;
+    float max_diff_pct = 100.0 * max_diff / avg_price;
 
     std::cout << "Analysis:\n";
     std::cout << "  Average Price: " << std::setprecision(6) << avg_price << "\n";
@@ -142,8 +142,8 @@ int main() {
               << std::max({cpu_simple.price, cpu_cross.price, gpu_simple.price, gpu_cross.price})
               << "]\n\n";
 
-    Real cpu_overhead = 100.0 * (cpu_cross.computeTime - cpu_simple.computeTime) / cpu_simple.computeTime;
-    Real gpu_overhead = 100.0 * (gpu_cross.computeTime - gpu_simple.computeTime) / gpu_simple.computeTime;
+    float cpu_overhead = 100.0 * (cpu_cross.computeTime - cpu_simple.computeTime) / cpu_simple.computeTime;
+    float gpu_overhead = 100.0 * (gpu_cross.computeTime - gpu_simple.computeTime) / gpu_simple.computeTime;
 
     std::cout << "Performance Impact:\n";
     std::cout << "  CPU Overhead: +" << std::setprecision(1) << cpu_overhead << "%\n";

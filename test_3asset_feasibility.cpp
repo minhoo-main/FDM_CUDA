@@ -18,26 +18,26 @@ struct GridAnalysis {
         return (size_t)N1 * N2 * N3 * Nt;
     }
 
-    double getMemoryGB() const {
+    float getMemoryGB() const {
         // Need at least 3 arrays for ADI
         size_t arrays_needed = 3;
-        size_t bytes = getTotalPoints() * arrays_needed * sizeof(double);
+        size_t bytes = getTotalPoints() * arrays_needed * sizeof(float);
         return bytes / (1024.0 * 1024.0 * 1024.0);
     }
 
-    double getComputationTime(double ops_per_point = 100,
-                              double gflops_speed = 100) const {
+    float getComputationTime(float ops_per_point = 100,
+                              float gflops_speed = 100) const {
         // Rough estimate: 100 operations per point
-        double total_ops = getTotalPoints() * ops_per_point;
+        float total_ops = getTotalPoints() * ops_per_point;
         return total_ops / (gflops_speed * 1e9);
     }
 };
 
 // Monte Carlo comparison
-double monteCarloTime(int num_paths, int num_steps,
-                      double ops_per_step = 50,
-                      double gflops_speed = 100) {
-    double total_ops = (double)num_paths * num_steps * ops_per_step;
+float monteCarloTime(int num_paths, int num_steps,
+                      float ops_per_step = 50,
+                      float gflops_speed = 100) {
+    float total_ops = (float)num_paths * num_steps * ops_per_step;
     return total_ops / (gflops_speed * 1e9);
 }
 
@@ -69,15 +69,15 @@ int main() {
                               std::to_string(grid.N3) + "×" +
                               std::to_string(grid.Nt);
 
-        double memory = grid.getMemoryGB();
-        double cpu_time = grid.getComputationTime();
+        float memory = grid.getMemoryGB();
+        float cpu_time = grid.getComputationTime();
         std::string feasible = (memory < 16 && cpu_time < 60) ? "✓ Yes" : "✗ No";
 
         if (memory > 32) feasible = "✗ GPU OOM";
 
         std::cout << std::setw(20) << grid_str
                   << std::setw(15) << std::scientific << std::setprecision(2)
-                  << (double)grid.getTotalPoints()
+                  << (float)grid.getTotalPoints()
                   << std::setw(12) << std::fixed << std::setprecision(1)
                   << memory
                   << std::setw(15) << std::setprecision(1) << cpu_time
@@ -93,8 +93,8 @@ int main() {
 
     // 2-Asset FDM
     size_t points_2d = 200 * 200 * 1000;
-    double mem_2d = points_2d * 3 * 8.0 / 1e9;
-    double time_2d = points_2d * 100 / (100 * 1e9);
+    float mem_2d = points_2d * 3 * 8.0 / 1e9;
+    float time_2d = points_2d * 100 / (100 * 1e9);
 
     std::cout << std::setw(20) << "2-Asset FDM"
               << std::setw(20) << "200×200×1000"
@@ -103,8 +103,8 @@ int main() {
 
     // 3-Asset FDM
     size_t points_3d = 100 * 100 * 100 * 500;
-    double mem_3d = points_3d * 3 * 8.0 / 1e9;
-    double time_3d = points_3d * 100 / (100 * 1e9);
+    float mem_3d = points_3d * 3 * 8.0 / 1e9;
+    float time_3d = points_3d * 100 / (100 * 1e9);
 
     std::cout << std::setw(20) << "3-Asset FDM"
               << std::setw(20) << "100×100×100×500"
@@ -114,8 +114,8 @@ int main() {
     // Monte Carlo
     int mc_paths = 1000000;
     int mc_steps = 1000;
-    double mc_time = monteCarloTime(mc_paths, mc_steps);
-    double mc_mem = mc_paths * mc_steps * 8.0 / 1e9;
+    float mc_time = monteCarloTime(mc_paths, mc_steps);
+    float mc_mem = mc_paths * mc_steps * 8.0 / 1e9;
 
     std::cout << std::setw(20) << "3-Asset Monte Carlo"
               << std::setw(20) << "1M paths × 1K steps"

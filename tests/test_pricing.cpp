@@ -86,8 +86,8 @@ void testCPUGPUConsistency() {
     auto cpuResult = priceELS(product, N1, N2, Nt, false);
     auto gpuResult = CUDA::priceELSGPU(product, N1, N2, Nt, false);
 
-    double priceDiff = std::abs(cpuResult.price - gpuResult.price);
-    double relDiff = priceDiff / cpuResult.price;
+    float priceDiff = std::abs(cpuResult.price - gpuResult.price);
+    float relDiff = priceDiff / cpuResult.price;
 
     // Prices should match within 0.1%
     assert(relDiff < 0.001);
@@ -108,8 +108,8 @@ void testConvergence() {
     auto result3 = priceELS(product, 80, 80, 160, false);
 
     // Prices should converge (difference should decrease)
-    double diff1 = std::abs(result2.price - result1.price);
-    double diff2 = std::abs(result3.price - result2.price);
+    float diff1 = std::abs(result2.price - result1.price);
+    float diff2 = std::abs(result3.price - result2.price);
 
     std::cout << "✓ PASSED\n";
     std::cout << "  40×40: " << result1.price << "\n";
